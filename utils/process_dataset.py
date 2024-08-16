@@ -5,6 +5,7 @@ import random
 from constants import TRAIN_OBJECTS, VAL_OBJECTS, TEST_OBJECTS
 import json
 import argparse
+import glob
 
 
 def get_frames(dataset_path, frames_output_path):
@@ -182,23 +183,54 @@ def get_samples(data_output_path, train_json_path, val_json_path, test_json_path
         json.dump(test_sample_paths, f)
         f.close()
 
+def generate_dataset_json(root, output_path, ratio=0.8):
+    samples = glob.glob(os.path.join(root, '*','*curves_100.png'))
+    random.shuffle(samples)
+    train_samples = samples[:int(len(samples)*ratio)]
+    val_samples = samples[int(len(samples)*ratio):]
+    
+    train_sample_paths = {}
+    val_sample_paths = {}
+    for sample in train_samples:
+        sample_material = sample.split('/')[-2].rstrip('0123456789')
+        if sample_material not in train_sample_paths.keys():
+            train_sample_paths[sample_material] = [sample]
+        else:
+            train_sample_paths[sample_material].append(sample)
+    
+    for sample in val_samples:
+        sample_material = sample.split('/')[-2].rstrip('0123456789')
+        if sample_material not in val_sample_paths.keys():
+            val_sample_paths[sample_material] = [sample]
+        else:
+            val_sample_paths[sample_material].append(sample)
+    
+    with open(os.path.join(output_path, 'train_samples.json'), 'w') as f:
+        json.dump(train_sample_paths, f)
+        f.close()
+    with open(os.path.join(output_path, 'val_samples.json'), 'w') as f:
+        json.dump(val_sample_paths, f)
+        f.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_path', help='directory with tactile videos')
-    parser.add_argument('--output_path', help='directory to save processed frames and sample files')
+    parser.add_argument('--dataset_path', default='./_data', help='directory with tactile videos')
+    parser.add_argument('--output_path', default='./_data', help='directory to save processed frames and sample files')
     args = parser.parse_args()
     os.makedirs(args.output_path, exist_ok=True)
+    
+    generate_dataset_json(args.dataset_path, args.output_path)
 
-    # 1) get frames
-    print(f"Getting frames...")
-    get_frames(args.dataset_path, args.output_path)
-    print("Done!")
+    # # 1) get frames
+    # print(f"Getting frames...")
+    # get_frames(args.dataset_path, args.output_path)
+    # print("Done!")
 
-    # 2) create samples for each set
-    print(f"\nGetting sample files...")
-    train_json_path = os.path.join(args.output_path, "train_samples.json")
-    val_json_path = os.path.join(args.output_path, "val_samples.json")
-    test_json_path = os.path.join(args.output_path, "test_samples.json")
-    get_samples(args.output_path, train_json_path, val_json_path, test_json_path)
-    print("Done!")
+    # # 2) create samples for each set
+    # print(f"\nGetting sample files...")
+    # train_json_path = os.path.join(args.output_path, "train_samples.json")
+    # val_json_path = os.path.join(args.output_path, "val_samples.json")
+    # test_json_path = os.path.join(args.output_path, "test_samples.json")
+    # get_samples(args.output_path, train_json_path, val_json_path, test_json_path)
+    # print("Done!")

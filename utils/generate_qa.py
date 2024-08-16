@@ -23,6 +23,15 @@ def get_sample_description(sample, properties, use_unstructured):
     description += "."
     return description
 
+def get_sample_description_custom(sample, properties, use_unstructured):
+    if use_unstructured:
+        description = DESCRIPTIONS[sample][0] + f" Overall, it should be made of {sample}"
+    else:
+        description = f"It should be made of {sample}"
+    assert len(properties) >= 1
+    description += "."
+    return description
+
 
 def generate_one_step_qa(start_prompt, json_path, data_path, split, num_samples, use_unstructured, use_properties):
     properties = ["hardness", "roughness", "texture"]
@@ -366,6 +375,107 @@ def generate_one_step_qa(start_prompt, json_path, data_path, split, num_samples,
     json.dump(all_data, data_file, indent=4) 
     data_file.close()
 
+def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_samples, use_unstructured, use_properties):
+    properties = ["material"]
+
+    property_names = {
+        "material": "material",
+    }
+
+    # prompt setup
+    object_property_description = [{
+        "object_property_description_0": ["What material is <tact_start>", "<img_tokens>", "<tact_end> made of?"],
+        "object_property_description_1": ["Describe the material of <tact_start>", "<img_tokens>", "<tact_end>."],
+        "object_property_description_2": ["Could you specify the type of materials of <tact_start>", "<img_tokens>", "<tact_end>?"],
+    }]
+
+    if split == "train":
+        property_questions = {
+            "train_object_property_description": object_property_description,
+        }
+        # if use_properties:
+        #     property_questions["train_object_property_description"] = object_property_description
+    elif split == "eval":
+        property_questions = {
+            "eval_object_property_description": object_property_description,
+        }
+
+    # load samples
+    for i in range(len(json_path)):
+        if i == 0:
+            with open(json_path[i]) as json_file:
+                samples = json.load(json_file)
+                json_file.close()
+        else:
+            with open(json_path[i]) as json_file:
+                samples_temp = json.load(json_file)
+                json_file.close()
+            for k, v in samples_temp.items():
+                if k in samples.keys():
+                    samples[k] += v
+                else:
+                    samples[k] = v
+
+    # data
+    all_data = []
+
+    if split == "eval":
+        existing = {
+            "eval_object_property_description": [],
+        }
+    
+    for i in range(num_samples):
+        if split == "eval":
+            exist = False
+        question_type = random.choice(list(property_questions.keys()))
+        question_steps =  random.randint(1, len(property_questions[question_type]))
+        data = [{
+            "question_type": question_type,
+            "question_steps": question_steps
+        }]
+        if question_type == f"{split}_object_property_description":
+            for qs in range(question_steps):
+                question_key = random.choice(list(property_questions[question_type][qs].keys()))
+                question = property_questions[question_type][qs][question_key].copy()
+                num_tactile = question.count("<img_tokens>")
+                # get relevant object(s) and their frames
+                sample = random.sample(samples.keys(), k=num_tactile)[0]
+                tactile = [random.choice(samples[sample])]
+                answer = get_sample_description_custom(sample, properties, use_unstructured)
+                if qs == 0:
+                    question.insert(0, start_prompt)
+                data.append({
+                        "role": "USER",
+                        "content": question,
+                        "tactile": tactile
+                    })
+                data.append({
+                        "role": "ASSISTANT",
+                        "content": [answer],
+                        "tactile": []
+                    })
+        else:
+            raise NotImplementedError('Question type not implemented')
+        
+        if split == "eval":
+            if not exist:
+                all_data.append(data)
+        else:
+            all_data.append(data)
+
+    # save all data
+    if split == "eval":
+        file_name = f"test_qa"
+    else:
+        file_name = f"{split}_qa"
+    # if not use_properties:
+    #     file_name += "_no_properties"
+    # if not use_unstructured:
+    #     file_name += "_no_unstructured"
+    data_file = open(os.path.join(data_path, f"{file_name}.json"), "w")
+    json.dump(all_data, data_file, indent=4) 
+    data_file.close()
+
 
 def generate_opd_evaluation_qa(start_prompt, json_path, data_path, split, use_unstructured):
     properties = ["hardness", "roughness", "texture"]
@@ -393,6 +503,54 @@ def generate_opd_evaluation_qa(start_prompt, json_path, data_path, split, use_un
             sample = i[0]
             tactile = i[1]
             answer = get_sample_description(sample, properties, use_unstructured)
+            if qs == 0:
+                question.insert(0, start_prompt)
+            data.append({
+                    "role": "USER",
+                    "content": question,
+                    "tactile": [tactile]
+                })
+            data.append({
+                    "role": "ASSISTANT",
+                    "content": [answer],
+                    "tactile": []
+                })
+        all_data.append(data)
+
+    # save all data
+    file_name = f"{split}_opd_qa"
+    if not use_unstructured:
+        file_name += "_no_unstructured"
+    data_file = open(os.path.join(data_path, f"{file_name}.json"), "w")
+    json.dump(all_data, data_file, indent=4) 
+    data_file.close()
+    
+def generate_opd_evaluation_qa_custom(start_prompt, json_path, data_path, split, use_unstructured):
+    properties = ["material"]
+
+    # load samples
+    with open(json_path) as json_file:
+        samples = json.load(json_file)
+        json_file.close()
+    all_samples = []
+    for k in samples.keys():
+        for v in samples[k]:
+            all_samples.append((k, v))
+
+    all_data = []
+    for i in all_samples:
+        question_type = "eval_object_property_description"
+        question_steps =  1
+        data = [{
+            "question_type": question_type,
+            "question_steps": question_steps
+        }]
+        for qs in range(question_steps):
+            question = ["Describe the material of <tact_start>", "<img_tokens>", "<tact_end>."]
+            # get relevant object(s) and their frames
+            sample = i[0]
+            tactile = i[1]
+            answer = get_sample_description_custom(sample, properties, use_unstructured)
             if qs == 0:
                 question.insert(0, start_prompt)
             data.append({
@@ -1137,7 +1295,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_path', help='directory to save processed frames and sample files')
     args = parser.parse_args()
 
-    use_unstructured = True
+    use_unstructured = False
     use_tactile = True
     use_properties = True
     # create question-answer pairs for each split
@@ -1148,12 +1306,12 @@ if __name__ == "__main__":
     # avocado_json_path = "/home/users/samson/tactile-sensing-llm/robot/avocado_samples.json"
     print("Generating QA...")
     # 1) training
-    generate_one_step_qa(start_prompt, [train_json_path], args.data_path, "train", 10000, use_unstructured, use_properties)
+    generate_one_step_qa_custom(start_prompt, [train_json_path], args.data_path, "train", 10000, use_unstructured, use_properties)
     # 2) evaluation
-    generate_opd_evaluation_qa(start_prompt, val_json_path, args.data_path, "val", use_unstructured)
-    generate_opd_evaluation_qa(start_prompt, test_json_path, args.data_path, "test", use_unstructured)
-    generate_one_step_qa(start_prompt, [test_json_path], args.data_path, "eval", 500, use_unstructured, use_properties)
-    generate_psr_evaluation_qa(start_prompt, [test_json_path], args.data_path, 50, use_unstructured, use_tactile)
+    generate_opd_evaluation_qa_custom(start_prompt, val_json_path, args.data_path, "val", use_unstructured)
+    # generate_opd_evaluation_qa(start_prompt, test_json_path, args.data_path, "test", use_unstructured)
+    # generate_one_step_qa(start_prompt, [test_json_path], args.data_path, "eval", 500, use_unstructured, use_properties)
+    # generate_psr_evaluation_qa(start_prompt, [test_json_path], args.data_path, 50, use_unstructured, use_tactile)
     # 3) avocados
     # generate_opd_evaluation_qa(start_prompt, avocado_json_path, "/home/users/samson/tactile-sensing-llm/robot/avocado_frames", "avocado", use_unstructured)
     # generate_avocado_evaluation_qa(start_prompt, [avocado_json_path], "/home/users/samson/tactile-sensing-llm/robot/avocado_frames", 100, use_tactile)
