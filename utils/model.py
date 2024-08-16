@@ -25,6 +25,7 @@ class CLIPTactileEncoder(nn.Module):
         self.model = CLIPVisionModel.from_pretrained(clip_model)
 
     def forward(self, tactile_embeds):
+        print(tactile_embeds.shape)
         tactile_forward_outs = self.model(tactile_embeds, output_hidden_states=True)
         # pooled output
         tactile_features = tactile_forward_outs.hidden_states[-1][:, 0].to(tactile_embeds.dtype) # (b * l, patch_embed_size)
@@ -136,6 +137,63 @@ class TactileCLIP(nn.Module):
         return vision_features, text_features, logits_per_image, logits_per_text
 
 
+# class MultimodalLLMForCausalLM(nn.Module):
+#     def __init__(self, tokenizer, clip_model, encoder_output_size, cutoff_len, llm, use_vqvae, device):
+#         super(MultimodalLLMForCausalLM, self).__init__()
+#         self.tokenizer = tokenizer
+#         self.cutoff_len = cutoff_len
+#         self.use_vqvae = use_vqvae
+#         self.device = device
+#         self.llm_embedding_size = llm.model.embed_tokens.weight.shape[1]
+#         self.encoder = CLIPTactileEncoder(clip_model=clip_model)
+#         self.project = nn.Sequential(
+#             nn.Linear(encoder_output_size, self.llm_embedding_size),
+#             nn.GELU(),
+#             nn.Linear(self.llm_embedding_size, self.llm_embedding_size),
+#         )
+
+#     def get_dummy_token(self, answer_embeds, question_embeds_len):
+#         batch_size = answer_embeds.shape[0]
+#         answer_embeds_len = answer_embeds.shape[1]
+#         index_shift = 0
+#         # labels are shifted by -1 inside the LlamaForCausalLM source code so tokens < n predict n
+#         pre_label_token = torch.full((batch_size, question_embeds_len + index_shift), fill_value=-100, dtype=torch.int64, device=self.device)
+#         post_label_token = torch.full((batch_size, self.cutoff_len - (question_embeds_len + answer_embeds_len + index_shift)), fill_value=-100, dtype=torch.int64, device=self.device)
+#         return pre_label_token, post_label_token
+
+#     def forward(self, question, tactile_frames, answer_tokens, all_indices, images=None):
+#         # 1) question embeds
+#         question_embeds = []
+#         img_token_count = 0
+#         for chunk in question:
+#             chunk = chunk[0]
+#             if "img_tokens" in chunk:
+#                 visual_embeds = self.encoder(tactile_frames[img_token_count].to(self.device))
+#                 idx = [all_indices[img_token_count]]
+#                 sinusoidal_embeds = sinusoidal_positional_embedding(token_sequence_size=5, indices=idx, token_embedding_dim=1024, batch_size=visual_embeds.shape[0]).to(visual_embeds.device)
+#                 chunk_embeds = self.project(visual_embeds + sinusoidal_embeds)
+#                 img_token_count += 1
+#             else:
+#                 chunk_embeds = self.llm.get_input_embeddings()(torch.tensor(self.tokenizer.encode(chunk), dtype=torch.int64)[1:].to(self.device))
+#                 chunk_embeds = torch.unsqueeze(chunk_embeds, dim=0)
+#             question_embeds.append(chunk_embeds)
+#         question_embeds = torch.cat(question_embeds, dim=1)
+#         # 2) answer embeds
+#         answer_embeds = self.llm.get_input_embeddings()(answer_tokens)
+#         full_embeds_len = question_embeds.shape[1] + answer_embeds.shape[1]
+#         question_embeds_len = question_embeds.shape[1]
+#         batch_size = question_embeds.shape[0]
+#         # NOTE: padding token embedding index is 0
+#         padding_embeds = self.llm.get_input_embeddings()(torch.zeros(batch_size, self.cutoff_len - full_embeds_len, device=self.device, dtype=torch.int64))
+#         # 3) combine embeds
+#         input_embeds = torch.cat((question_embeds, answer_embeds, padding_embeds), dim=1)
+#         pre_label_dummy_token, post_label_dummy_token = self.get_dummy_token(answer_embeds, question_embeds_len)
+#         labels = torch.cat((pre_label_dummy_token, answer_tokens, post_label_dummy_token), dim=1)
+#         batch_size = answer_embeds.shape[0]
+#         attention_mask = torch.cat((torch.ones([batch_size, full_embeds_len]), torch.zeros([batch_size, padding_embeds.shape[1]])), dim=1).to(self.device)
+#         out = self.llm(inputs_embeds=input_embeds, labels=labels, attention_mask=attention_mask) # pass in embeddings directly: https://huggingface.co/docs/transformers/main/en/model_doc/llama
+#         return out, question_embeds
+
 class MultimodalLLMForCausalLM(nn.Module):
     def __init__(self, tokenizer, clip_model, encoder_output_size, cutoff_len, llm, use_vqvae, device):
         super(MultimodalLLMForCausalLM, self).__init__()
@@ -160,7 +218,7 @@ class MultimodalLLMForCausalLM(nn.Module):
         post_label_token = torch.full((batch_size, self.cutoff_len - (question_embeds_len + answer_embeds_len + index_shift)), fill_value=-100, dtype=torch.int64, device=self.device)
         return pre_label_token, post_label_token
 
-    def forward(self, question, tactile_frames, answer_tokens, all_indices, images=None):
+    def forward(self, question, tactile_frames, answer_tokens, images=None):
         # 1) question embeds
         question_embeds = []
         img_token_count = 0
@@ -168,9 +226,8 @@ class MultimodalLLMForCausalLM(nn.Module):
             chunk = chunk[0]
             if "img_tokens" in chunk:
                 visual_embeds = self.encoder(tactile_frames[img_token_count].to(self.device))
-                idx = [all_indices[img_token_count]]
-                sinusoidal_embeds = sinusoidal_positional_embedding(token_sequence_size=5, indices=idx, token_embedding_dim=1024, batch_size=visual_embeds.shape[0]).to(visual_embeds.device)
-                chunk_embeds = self.project(visual_embeds + sinusoidal_embeds)
+                chunk_embeds = self.project(visual_embeds)
+                chunk_embeds = torch.unsqueeze(chunk_embeds, dim=0)
                 img_token_count += 1
             else:
                 chunk_embeds = self.llm.get_input_embeddings()(torch.tensor(self.tokenizer.encode(chunk), dtype=torch.int64)[1:].to(self.device))
