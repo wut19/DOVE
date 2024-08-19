@@ -27,7 +27,7 @@ dim_context_text: 768
 # projection
 freeze_projection: False
 projection_lr: 0.0002
-projection_path: null # path/to/project.pt
+projection_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/project.pt # null
 
 # LLM
 train_files: ['_data/train_qa.json']
@@ -38,11 +38,11 @@ cutoff_len: 512
 offload_dir: ./
 llm_lr: 0.0002
 quantized: False
-tokenizer_path: null # path/to/tokenizer
-llm_path: null # path/to/llm_weights
+tokenizer_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/tokenizer # null
+llm_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/llm_weights # null
 ## LoRA
 lora_trained: False
-use_lora: False # True
+use_lora: True # False
 lora_alpha: 256
 r: 128
 lora_dropout: 0.05
@@ -53,7 +53,7 @@ modules_to_save:
   - embed_tokens
 bias: none
 ## train
-max_train_steps: 10000 # 3000
+max_train_steps: 3000 # 10000
 save_freq: null
 per_device_train_batch_size: 1
 llm_gradient_accumulation_steps: 16

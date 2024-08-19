@@ -1,0 +1,25 @@
+# general
+data_dir: _modalities/color
+data_split: 0.8
+cuda: 2
+seed: 0
+exps_path: exps_custom
+
+# encoder
+use_clip: openai/clip-vit-large-patch14
+num_epochs: 40
+lr: 0.001
+classifier_lr: 0.001
+batch_size: 2
+num_workers: 1
+gradient_accumulation_steps: 2
+output_size: 1024
+
+# prompt learning
+prompt_learning: True
+num_context_vision: 8
+prompt_depth_vision: 12
+dim_context_vision: 1024
+num_context_text: 6
+prompt_depth_text: 12
+dim_context_text: 768

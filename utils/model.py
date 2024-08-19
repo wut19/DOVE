@@ -25,7 +25,6 @@ class CLIPTactileEncoder(nn.Module):
         self.model = CLIPVisionModel.from_pretrained(clip_model)
 
     def forward(self, tactile_embeds):
-        print(tactile_embeds.shape)
         tactile_forward_outs = self.model(tactile_embeds, output_hidden_states=True)
         # pooled output
         tactile_features = tactile_forward_outs.hidden_states[-1][:, 0].to(tactile_embeds.dtype) # (b * l, patch_embed_size)
