@@ -32,12 +32,12 @@ class CLIPTactileEncoder(nn.Module):
     
 
 class CLIPClassifier(nn.Module):
-    def __init__(self, output_size):
+    def __init__(self, output_size, num_class=10):
         super(CLIPClassifier, self).__init__()
         self.fc = nn.Linear(output_size, 512)
         self.act = nn.ReLU()
         self.dropout = nn.Dropout(0.5)
-        self.material_fc = nn.Linear(512, 10)
+        self.material_fc = nn.Linear(512, num_class)
 
     def forward(self, vision_features):
         vision_features = self.act(self.dropout(self.fc(vision_features)))
@@ -201,12 +201,19 @@ class MultimodalLLMForCausalLM(nn.Module):
         self.use_vqvae = use_vqvae
         self.device = device
         self.llm_embedding_size = llm.model.embed_tokens.weight.shape[1]
-        self.encoder = CLIPTactileEncoder(clip_model=clip_model)
-        self.project = nn.Sequential(
-            nn.Linear(encoder_output_size, self.llm_embedding_size),
-            nn.GELU(),
-            nn.Linear(self.llm_embedding_size, self.llm_embedding_size),
-        )
+        self.encoders = {
+            "color": CLIPTactileEncoder(clip_model=clip_model),
+            "temperature": CLIPTactileEncoder(clip_model=clip_model),
+            "texture": CLIPTactileEncoder(clip_model=clip_model),
+            "teng": CLIPTactileEncoder(clip_model=clip_model),
+        }
+        self.projects = {}
+        for key in self.encoders.keys():
+            self.projects[key] = nn.Sequential(
+                nn.Linear(encoder_output_size, self.llm_embedding_size),
+                nn.GELU(),
+                nn.Linear(self.llm_embedding_size, self.llm_embedding_size),
+            ).to(self.device)
 
     def get_dummy_token(self, answer_embeds, question_embeds_len):
         batch_size = answer_embeds.shape[0]
@@ -218,14 +225,15 @@ class MultimodalLLMForCausalLM(nn.Module):
         return pre_label_token, post_label_token
 
     def forward(self, question, tactile_frames, answer_tokens, images=None):
+        idxs = ['color', 'temperature', 'texture', 'teng']
         # 1) question embeds
         question_embeds = []
         img_token_count = 0
         for chunk in question:
             chunk = chunk[0]
             if "img_tokens" in chunk:
-                visual_embeds = self.encoder(tactile_frames[img_token_count].to(self.device))
-                chunk_embeds = self.project(visual_embeds)
+                visual_embeds = self.encoders[idxs[img_token_count]](tactile_frames[idxs[img_token_count]].to(self.device))
+                chunk_embeds = self.projects[idxs[img_token_count]](visual_embeds)
                 chunk_embeds = torch.unsqueeze(chunk_embeds, dim=0)
                 img_token_count += 1
             else:

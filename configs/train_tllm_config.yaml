@@ -1,7 +1,7 @@
 # general
-data_dir: _data
+# data_dir: _data
 gpu_config: configs/gpu_config_7b.json
-cuda: 0
+cuda: 2
 seed: 0
 exps_path: exps_custom
 train: True
@@ -13,9 +13,14 @@ flip_p: 0.
 
 # encoder
 use_vqvae: False
-use_clip: openai/clip-vit-large-patch14
+use_clip: 'openai/clip-vit-large-patch14'
 freeze_encoder: True
-encoder_path: exps_custom/2024_08_15_16_19_37_train_clip_tactile/encoder.pt
+encoder_path: {
+                'color': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/encoder_color_30000.pt',
+                'temperature': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/encoder_temperature_30000.pt',
+                'texture': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/encoder_texture_30000.pt',
+                'teng': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/encoder_teng_30000.pt'
+}
 encoder_output_size: 1024
 num_context_vision: 8
 prompt_depth_vision: 12
@@ -27,19 +32,24 @@ dim_context_text: 768
 # projection
 freeze_projection: False
 projection_lr: 0.0002
-projection_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/project.pt # null
+projection_path: {
+    'color': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/project_color_30000.pt',
+    'temperature': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/project_temperature_30000.pt',
+    'texture': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/project_texture_30000.pt',
+    'teng': 'exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/project_teng_30000.pt'
+} # null
 
 # LLM
-train_files: ['_data/train_qa.json']
-val_files: ['_data/val_opd_qa_no_unstructured.json']
+train_files: ['train_qa.json']
+val_files: ['test_qa.json']
 test_files: ['', '']
 model_type: vicuna-7b
 cutoff_len: 512
 offload_dir: ./
 llm_lr: 0.0002
 quantized: False
-tokenizer_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/tokenizer # null
-llm_path: exps_custom/2024_08_16_17_43_54_train_tllm_train_val_vicuna-7b_10000/llm_weights # null
+tokenizer_path: exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/tokenizer # null 
+llm_path: exps_custom/2024_08_20_14_21_25_train_tllm_train_val_vicuna-7b_30000/llm_weights #null
 ## LoRA
 lora_trained: False
 use_lora: True # False
@@ -53,7 +63,7 @@ modules_to_save:
   - embed_tokens
 bias: none
 ## train
-max_train_steps: 3000 # 10000
+max_train_steps: 5000 # 30000 
 save_freq: null
 per_device_train_batch_size: 1
 llm_gradient_accumulation_steps: 16

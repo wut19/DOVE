@@ -163,37 +163,47 @@ def train(configs, exp_name, g):
             scheduler_llm = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_llm, T_max=num_steps)
 
     # 2) encoder setup
-    if configs["use_vqvae"]:
-        model.encoder.load_state_dict(torch.load("encoders/vqvae/encoder.pth"))
-        model.vector_quantization.load_state_dict(torch.load("encoders/vqvae/vector_quantization.pth"))
-    elif configs["encoder_path"] is not None:
+    if configs["encoder_path"] is not None:
         try:
-            model.encoder.load_state_dict(torch.load(configs["encoder_path"]))
+            for key in model.encoders.keys():
+                model.encoders[key].load_state_dict(torch.load(configs["encoder_path"][key]), strict=False)
+                model.encoders[key].to(device)
         except RuntimeError:
-            clip = PromptLearningCLIPModel.from_pretrained(configs["use_clip"], configs).to(device)
-            model.encoder.model.vision_model = clip.vision_model
-            model.encoder.load_state_dict(torch.load(configs["encoder_path"]), strict=False)
+            raise RuntimeError("Cannot load encoder.")
     if configs["freeze_encoder"]:
-        for name, param in model.encoder.named_parameters():
-            param.requires_grad = False
+        for key in model.encoders.keys():
+            for name, param in model.encoders[key].named_parameters():
+                param.requires_grad = False
     else:
-        for name, param in model.encoder.named_parameters():
-            param.requires_grad = True
-        encoder_params = model.encoder.parameters()
-        optimizer_encoder = torch.optim.SGD(encoder_params, lr=configs["encoder_lr"])
+        for key in model.encoders.keys():
+            for name, param in model.encoders[key].named_parameters():
+                param.requires_grad = True
+                
+        encoder_params = []
+        for key in model.encoders.keys():
+            encoder_params.append({'params': model.encoders[key].parameters(), 'lr':  configs["encoder_lr"]})
+        
+        optimizer_encoder = torch.optim.SGD(encoder_params)
 
     # 3) projection setup
     if configs["projection_path"] is not None:
-        projection_dict = torch.load(configs["projection_path"])
-        model.project.load_state_dict(projection_dict)
+        for key in model.projects.keys():
+            projection_dict = torch.load(configs["projection_path"][key])
+            model.projects[key].load_state_dict(projection_dict)
+            model.projects[key].to(device)
     if configs["freeze_projection"]:
-        for name, param in model.project.named_parameters():
-            param.requires_grad = False
+        for key in model.projects.keys():
+            for name, param in model.projects[key].named_parameters():
+                param.requires_grad = False
     else:
-        for name, param in model.project.named_parameters():
-            param.requires_grad = True
-        project_params = model.project.parameters()
-        optimizer_project = torch.optim.AdamW(project_params, lr=configs["projection_lr"])
+        for key in model.projects.keys():
+            for name, param in model.projects[key].named_parameters():
+                param.requires_grad = True
+                
+        project_params = []
+        for key in model.projects.keys():
+            project_params.append({'params': model.projects[key].parameters(), 'lr':  configs["projection_lr"]})
+        optimizer_project = torch.optim.AdamW(project_params)
 
     # training
     if configs["train"]:
@@ -237,8 +247,10 @@ def train(configs, exp_name, g):
                     tokenizer.save_pretrained(f"{configs['exps_path']}/{exp_name}/tokenizer_{train_sample_step + 1}")
                     model.llm.save_pretrained(f"{configs['exps_path']}/{exp_name}/llm_weights_{train_sample_step + 1}")
                     # if configs["newton"] is False:
-                    torch.save(model.encoder.state_dict(), f"{configs['exps_path']}/{exp_name}/encoder_{train_sample_step + 1}.pt")
-                    torch.save(model.project.state_dict(), f"{configs['exps_path']}/{exp_name}/project_{train_sample_step + 1}.pt")
+                    for key in model.encoders.keys():
+                        torch.save(model.encoders[key].state_dict(), f"{configs['exps_path']}/{exp_name}/encoder_{key}_{train_sample_step + 1}.pt")
+                    for key in model.projects.keys():
+                        torch.save(model.projects[key].state_dict(), f"{configs['exps_path']}/{exp_name}/project_{key}_{train_sample_step + 1}.pt")
             if (train_sample_step + 1) >= configs["max_train_steps"]:
                 break
         if configs["save_freq"] is None:
@@ -249,8 +261,10 @@ def train(configs, exp_name, g):
             model.llm.generation_config.top_p = None
             model.llm.save_pretrained(f"{configs['exps_path']}/{exp_name}/llm_weights")
             # if configs["newton"] is False:
-            torch.save(model.encoder.state_dict(), f"{configs['exps_path']}/{exp_name}/encoder.pt")
-            torch.save(model.project.state_dict(), f"{configs['exps_path']}/{exp_name}/project.pt")
+            for key in model.encoders.keys():
+                torch.save(model.encoders[key].state_dict(), f"{configs['exps_path']}/{exp_name}/encoder_{key}_{train_sample_step + 1}.pt")
+            for key in model.projects.keys():
+                torch.save(model.projects[key].state_dict(), f"{configs['exps_path']}/{exp_name}/project_{key}_{train_sample_step + 1}.pt")
             print(f"LLM training done!")
 
     # validation
@@ -276,7 +290,7 @@ def train(configs, exp_name, g):
                     "question": "".join([i[0] for i in question]),
                     "question_type": question_type[0],
                     "question_step": question_step.item(),
-                    "sample_paths": [i[0] for i in tactile],
+                    "sample_paths": [i for i in tactile],
                     "answer": answer,
                     "generation": generation
                 })

@@ -148,6 +148,72 @@ class TENGIMUDataset(Dataset):
 
     def __len__(self):
         return len(self.data_paths)
+    
+class RGBDataset(Dataset):
+    def __init__(self, root, img_processor):
+        self.root = root
+        self.img_processor = img_processor
+        self.data_paths = glob.glob(os.path.join(root, '*','inf/*.jpg'))
+        self.label_dict = {'black': 0, 'blue': 1, 'green': 2, 'red': 3, 'white': 4, 'yellow': 5}
+
+    def __getitem__(self, idx):
+        data_path = self.data_paths[idx]
+        label_name = data_path.split('/')[-3]
+        for key in self.label_dict.keys():
+            if key in label_name:
+                label = self.label_dict[key]
+                break
+            
+        im = self.img_processor.preprocess(Image.open(data_path).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+
+        return im, F.one_hot(torch.tensor([label]), num_classes=len(self.label_dict.keys())).squeeze(0)
+
+    def __len__(self):
+        return len(self.data_paths)
+    
+class TempDataset(Dataset):
+    def __init__(self, root, img_processor):
+        self.root = root
+        self.img_processor = img_processor
+        self.data_paths = glob.glob(os.path.join(root, '*','*','*.jpg'))
+        self.label_dict = {'cold': 0, 'hot': 1, 'normal': 2}
+
+    def __getitem__(self, idx):
+        data_path = self.data_paths[idx]
+        label_name = data_path.split('/')[-3]
+        for key in self.label_dict.keys():
+            if key in label_name:
+                label = self.label_dict[key]
+                break
+            
+        im = self.img_processor.preprocess(Image.open(data_path).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+
+        return im, F.one_hot(torch.tensor([label]), num_classes=len(self.label_dict.keys())).squeeze(0)
+
+    def __len__(self):
+        return len(self.data_paths)
+    
+class TextureDataset(Dataset):
+    def __init__(self, root, img_processor):
+        self.root = root
+        self.img_processor = img_processor
+        self.data_paths = glob.glob(os.path.join(root, '*','rgb/*.jpg'))
+        self.label_dict = {'D1': 0, 'D2': 1, 'D3': 2, 'D4': 3, 'D5': 4, 'D7': 5,}
+
+    def __getitem__(self, idx):
+        data_path = self.data_paths[idx]
+        label_name = data_path.split('/')[-3]
+        for key in self.label_dict.keys():
+            if key in label_name:
+                label = self.label_dict[key]
+                break
+            
+        im = self.img_processor.preprocess(Image.open(data_path).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+
+        return im, F.one_hot(torch.tensor([label]), num_classes=len(self.label_dict.keys())).squeeze(0)
+
+    def __len__(self):
+        return len(self.data_paths)
 
 def split_data(dataset, cfg):
     indices = list(range(len(dataset)))
@@ -279,13 +345,17 @@ class TactileLLMDataset(Dataset):
         # 2) get tokens
         answer_tokens = torch.tensor(self.tokenizer.encode(answer + f'{self.eos_token}'), dtype=torch.int64)[1:]
         # 3) get frame tensors
-        im = self.image_processor.preprocess(Image.open(tactile[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+        im = {}
+        for key, t in tactile[0].items():
+            im[key] = self.image_processor.preprocess(Image.open(t[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+        # im = self.image_processor.preprocess(Image.open(tactile[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
 
-        return question, answer_tokens, [im], tactile, question_type, question_step
+        return question, answer_tokens, im, tactile, question_type, question_step
     
 
 if __name__ == '__main__':
     from transformers import CLIPImageProcessor
     image_processor = CLIPImageProcessor.from_pretrained("openai/clip-vit-large-patch14")
-    dataset = TactileLLMDataset(image_processor, ['_data/train_qa.json'], 'train', None, 0)
+    dataset = RGBDataset(root='_modalities/color', img_processor=image_processor)
+    print(dataset[0][0])
     

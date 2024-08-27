@@ -184,7 +184,7 @@ def get_samples(data_output_path, train_json_path, val_json_path, test_json_path
         f.close()
 
 def generate_dataset_json(root, output_path, ratio=0.8):
-    samples = glob.glob(os.path.join(root, '*','*curves_100.png'))
+    samples = glob.glob(os.path.join(root, '*','rgb/*.jpg'))
     random.shuffle(samples)
     train_samples = samples[:int(len(samples)*ratio)]
     val_samples = samples[int(len(samples)*ratio):]
@@ -192,14 +192,14 @@ def generate_dataset_json(root, output_path, ratio=0.8):
     train_sample_paths = {}
     val_sample_paths = {}
     for sample in train_samples:
-        sample_material = sample.split('/')[-2].rstrip('0123456789')
+        sample_material = sample.split('/')[-3]
         if sample_material not in train_sample_paths.keys():
             train_sample_paths[sample_material] = [sample]
         else:
             train_sample_paths[sample_material].append(sample)
     
     for sample in val_samples:
-        sample_material = sample.split('/')[-2].rstrip('0123456789')
+        sample_material = sample.split('/')[-3]
         if sample_material not in val_sample_paths.keys():
             val_sample_paths[sample_material] = [sample]
         else:
@@ -215,8 +215,8 @@ def generate_dataset_json(root, output_path, ratio=0.8):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_path', default='./_data', help='directory with tactile videos')
-    parser.add_argument('--output_path', default='./_data', help='directory to save processed frames and sample files')
+    parser.add_argument('--dataset_path', default='_modalities/texture/data2', help='directory with tactile videos')
+    parser.add_argument('--output_path', default='_modalities/texture', help='directory to save processed frames and sample files')
     args = parser.parse_args()
     os.makedirs(args.output_path, exist_ok=True)
     

@@ -7,7 +7,7 @@ exps_path: exps_custom
 
 # encoder
 use_clip: openai/clip-vit-large-patch14
-num_epochs: 40
+num_epochs: 10
 lr: 0.001
 classifier_lr: 0.001
 batch_size: 2

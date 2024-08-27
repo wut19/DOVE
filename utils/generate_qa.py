@@ -23,13 +23,22 @@ def get_sample_description(sample, properties, use_unstructured):
     description += "."
     return description
 
-def get_sample_description_custom(sample, properties, use_unstructured):
-    if use_unstructured:
-        description = DESCRIPTIONS[sample][0] + f" Overall, it should be made of {sample}"
-    else:
-        description = f"It should be made of {sample}"
+def get_sample_description_custom(sample, properties):
+    description = "After touch, I feel that"
     assert len(properties) >= 1
-    description += "."
+    if 'color' in properties:
+        description += f" the object is in {sample['color']} color"
+    if 'color' in properties and "temperature" in properties:
+        description += f" and"
+    else:
+        description += "."
+    if "temperature" in properties:
+        description += f" it is {TEMPERATURE_MAPS[sample['temperature']]} to touch."
+    if "texture" in properties:
+        description += " "
+        description += random.choice(TEXTURE_DESCRIPTIONS[sample['texture']])
+    if "teng" in properties:
+        description += f" With TENG data, I think the object is made of {sample['teng']}."
     return description
 
 
@@ -376,17 +385,13 @@ def generate_one_step_qa(start_prompt, json_path, data_path, split, num_samples,
     data_file.close()
 
 def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_samples, use_unstructured, use_properties):
-    properties = ["material"]
-
-    property_names = {
-        "material": "material",
-    }
-
+    properties = ["material", "color", "temperature", "texture", "teng"]
+    
     # prompt setup
     object_property_description = [{
-        "object_property_description_0": ["What material is <tact_start>", "<img_tokens>", "<tact_end> made of?"],
-        "object_property_description_1": ["Describe the material of <tact_start>", "<img_tokens>", "<tact_end>."],
-        "object_property_description_2": ["Could you specify the type of materials of <tact_start>", "<img_tokens>", "<tact_end>?"],
+        "object_property_description_0": ["How does it feel to touch <tact_start>", "<img_tokens>", "<img_tokens>","<img_tokens>","<img_tokens>", "<tact_end>?"],
+        "object_property_description_1": ["Describe the object <tact_start>", "<img_tokens>","<img_tokens>","<img_tokens>","<img_tokens>", "<tact_end> after touch."],
+        "object_property_description_2": ["Could you specify the properties of <tact_start>", "<img_tokens>","<img_tokens>","<img_tokens>","<img_tokens>", "<tact_end> after touching it?"],
     }]
 
     if split == "train":
@@ -401,20 +406,11 @@ def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_s
         }
 
     # load samples
-    for i in range(len(json_path)):
-        if i == 0:
-            with open(json_path[i]) as json_file:
-                samples = json.load(json_file)
-                json_file.close()
-        else:
-            with open(json_path[i]) as json_file:
-                samples_temp = json.load(json_file)
-                json_file.close()
-            for k, v in samples_temp.items():
-                if k in samples.keys():
-                    samples[k] += v
-                else:
-                    samples[k] = v
+    samples = {}
+    for key, path in json_path.items():
+        with open(path) as json_file:
+            samples[key] = json.load(json_file)
+            json_file.close()
 
     # data
     all_data = []
@@ -437,17 +433,19 @@ def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_s
             for qs in range(question_steps):
                 question_key = random.choice(list(property_questions[question_type][qs].keys()))
                 question = property_questions[question_type][qs][question_key].copy()
-                num_tactile = question.count("<img_tokens>")
                 # get relevant object(s) and their frames
-                sample = random.sample(samples.keys(), k=num_tactile)[0]
-                tactile = [random.choice(samples[sample])]
-                answer = get_sample_description_custom(sample, properties, use_unstructured)
+                sample = {}
+                tactile = {}
+                for key in samples.keys():
+                    sample[key] = random.sample(samples[key].keys(), k=1)[0]
+                    tactile[key] = [random.choice(samples[key][sample[key]])]
+                answer = get_sample_description_custom(sample, properties)
                 if qs == 0:
                     question.insert(0, start_prompt)
                 data.append({
                         "role": "USER",
                         "content": question,
-                        "tactile": tactile
+                        "tactile": [tactile]
                     })
                 data.append({
                         "role": "ASSISTANT",
@@ -526,19 +524,18 @@ def generate_opd_evaluation_qa(start_prompt, json_path, data_path, split, use_un
     data_file.close()
     
 def generate_opd_evaluation_qa_custom(start_prompt, json_path, data_path, split, use_unstructured):
-    properties = ["material"]
+    properties = ["material", "color", "temperature", "texture"]
 
     # load samples
-    with open(json_path) as json_file:
-        samples = json.load(json_file)
-        json_file.close()
-    all_samples = []
-    for k in samples.keys():
-        for v in samples[k]:
-            all_samples.append((k, v))
+    all_samples = {}
+    for key, path in json_path.items():
+        with open(path) as json_file:
+            all_samples[key] = json.load(json_file)
+            json_file.close()
 
+    num_samples = min([len(all_samples[key]) for key in all_samples.keys()])
     all_data = []
-    for i in all_samples:
+    for i in range(num_samples):
         question_type = "eval_object_property_description"
         question_steps =  1
         data = [{
@@ -546,11 +543,15 @@ def generate_opd_evaluation_qa_custom(start_prompt, json_path, data_path, split,
             "question_steps": question_steps
         }]
         for qs in range(question_steps):
-            question = ["Describe the material of <tact_start>", "<img_tokens>", "<tact_end>."]
+            question = ["Describe the properties of <tact_start>", "<img_tokens>", "<tact_end>."]
             # get relevant object(s) and their frames
-            sample = i[0]
-            tactile = i[1]
-            answer = get_sample_description_custom(sample, properties, use_unstructured)
+            num_tactile = question.count("<img_tokens>")
+            sample = {}
+            tactile = {}
+            for key in all_samples.keys():
+                sample[key] = random.choice(all_samples[key].keys(),k=num_tactile)[0]
+                tactile[key] = [random.choice(all_samples[key][sample])]
+            answer = get_sample_description_custom(sample, properties)
             if qs == 0:
                 question.insert(0, start_prompt)
             data.append({
@@ -1300,15 +1301,27 @@ if __name__ == "__main__":
     use_properties = True
     # create question-answer pairs for each split
     start_prompt = "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
-    train_json_path = os.path.join(args.data_path, "train_samples.json")
-    val_json_path = os.path.join(args.data_path, "val_samples.json")
-    test_json_path = os.path.join(args.data_path, "test_samples.json")
+    train_json_path = {
+        'color': os.path.join('_modalities/color', "train_samples.json"),
+        'temperature': os.path.join('_modalities/temperature', "train_samples.json"),
+        'texture': os.path.join('_modalities/texture', "train_samples.json"),
+        'teng': os.path.join('_data', "train_samples.json"),
+    }
+    val_json_path = {
+        'color': os.path.join('_modalities/color', "val_samples.json"),
+        'temperature': os.path.join('_modalities/temperature', "val_samples.json"),
+        'texture': os.path.join('_modalities/texture', "val_samples.json"),
+        'teng': os.path.join('_data', "val_samples.json"),
+    }
+    
+    # test_json_path = os.path.join(args.data_path, "test_samples.json")
     # avocado_json_path = "/home/users/samson/tactile-sensing-llm/robot/avocado_samples.json"
     print("Generating QA...")
     # 1) training
-    generate_one_step_qa_custom(start_prompt, [train_json_path], args.data_path, "train", 10000, use_unstructured, use_properties)
+    generate_one_step_qa_custom(start_prompt, train_json_path, args.data_path, "train", 30000, use_unstructured, use_properties)
     # 2) evaluation
-    generate_opd_evaluation_qa_custom(start_prompt, val_json_path, args.data_path, "val", use_unstructured)
+    generate_one_step_qa_custom(start_prompt, val_json_path, args.data_path, "eval", 1000, use_unstructured, use_properties)
+    # generate_opd_evaluation_qa_custom(start_prompt, val_json_path, args.data_path, "val", use_unstructured)
     # generate_opd_evaluation_qa(start_prompt, test_json_path, args.data_path, "test", use_unstructured)
     # generate_one_step_qa(start_prompt, [test_json_path], args.data_path, "eval", 500, use_unstructured, use_properties)
     # generate_psr_evaluation_qa(start_prompt, [test_json_path], args.data_path, 50, use_unstructured, use_tactile)
