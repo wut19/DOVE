@@ -1,14 +1,7 @@
 # SuperTac
 
-Repository containing multimodal tactile dataset, classification algorithms, and DOVE tactile language model.
+Repository containing DOVE tactile language model and multimodal tactile dataset.
 
-## Repository Structure
-```
-- DOVE.zip              # Tactile language model source code
-- classification.zip    # Classification algorithms
-- dataset.zip           # Multimodal tactile dataset
-- weights&logs.zip      # Pre-trained DOVE model weights
-```
 
 ## DOVE
 
@@ -44,7 +37,7 @@ The training process includes two stages:
 Pre-trained weights and experiment logs are available in `weights&logs.zip`.
 
 ## Dataset
-
+Dataset can be found at [this address](https://cloud.tsinghua.edu.cn/d/f6abfcf5845a42018e2a/files/?p=%2FData%2Fdataset.zip)
 ### Structure
 ```
 - color/
