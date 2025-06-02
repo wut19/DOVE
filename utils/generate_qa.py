@@ -23,7 +23,7 @@ def get_sample_description_custom(sample, properties):
     return description
 
 def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_samples, use_unstructured, use_properties):
-    properties = ["material", "color", "temperature", "texture", "teng"]
+    properties = ["color", "temperature", "texture", "teng"]
     
     # prompt setup
     object_property_description = [{
@@ -112,58 +112,6 @@ def generate_one_step_qa_custom(start_prompt, json_path, data_path, split, num_s
     json.dump(all_data, data_file, indent=4) 
     data_file.close()
 
-    
-def generate_opd_evaluation_qa_custom(start_prompt, json_path, data_path, split, use_unstructured):
-    properties = ["material", "color", "temperature", "texture"]
-
-    # load samples
-    all_samples = {}
-    for key, path in json_path.items():
-        with open(path) as json_file:
-            all_samples[key] = json.load(json_file)
-            json_file.close()
-
-    num_samples = min([len(all_samples[key]) for key in all_samples.keys()])
-    all_data = []
-    for i in range(num_samples):
-        question_type = "eval_object_property_description"
-        question_steps =  1
-        data = [{
-            "question_type": question_type,
-            "question_steps": question_steps
-        }]
-        for qs in range(question_steps):
-            question = ["Describe the properties of <tact_start>", "<img_tokens>", "<tact_end>."]
-            # get relevant object(s) and their frames
-            num_tactile = question.count("<img_tokens>")
-            sample = {}
-            tactile = {}
-            for key in all_samples.keys():
-                sample[key] = random.choice(all_samples[key].keys(),k=num_tactile)[0]
-                tactile[key] = [random.choice(all_samples[key][sample])]
-            answer = get_sample_description_custom(sample, properties)
-            if qs == 0:
-                question.insert(0, start_prompt)
-            data.append({
-                    "role": "USER",
-                    "content": question,
-                    "tactile": [tactile]
-                })
-            data.append({
-                    "role": "ASSISTANT",
-                    "content": [answer],
-                    "tactile": []
-                })
-        all_data.append(data)
-
-    # save all data
-    file_name = f"{split}_opd_qa"
-    if not use_unstructured:
-        file_name += "_no_unstructured"
-    data_file = open(os.path.join(data_path, f"{file_name}.json"), "w")
-    json.dump(all_data, data_file, indent=4) 
-    data_file.close()
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', help='directory to save processed frames and sample files')
@@ -175,16 +123,16 @@ if __name__ == "__main__":
     # create question-answer pairs for each split
     start_prompt = "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
     train_json_path = {
-        'color': os.path.join('_modalities/color', "train_samples.json"),
-        'temperature': os.path.join('_modalities/temperature', "train_samples.json"),
-        'texture': os.path.join('_modalities/texture', "train_samples.json"),
-        'teng': os.path.join('_data', "train_samples.json"),
+        'color': os.path.join('data/color', "train_samples.json"),
+        'temperature': os.path.join('data/temperature', "train_samples.json"),
+        'texture': os.path.join('data/texture', "train_samples.json"),
+        'teng': os.path.join('data/teng', "train_samples.json"),
     }
     val_json_path = {
-        'color': os.path.join('_modalities/color', "val_samples.json"),
-        'temperature': os.path.join('_modalities/temperature', "val_samples.json"),
-        'texture': os.path.join('_modalities/texture', "val_samples.json"),
-        'teng': os.path.join('_data', "val_samples.json"),
+        'color': os.path.join('data/color', "val_samples.json"),
+        'temperature': os.path.join('data/temperature', "val_samples.json"),
+        'texture': os.path.join('data/texture', "val_samples.json"),
+        'teng': os.path.join('data/teng', "val_samples.json"),
     }
     
     print("Generating QA...")

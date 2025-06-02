@@ -95,18 +95,18 @@ def train(configs, exp_name, g):
         new_tokens = ['<tact_start>', '<tact_end>']
         add_new_tokens(llm, tokenizer, new_tokens)
 
-    # load datasets
-    if configs["use_clip"]:
-        image_processor = CLIPImageProcessor.from_pretrained(configs["use_clip"])
-    if configs["train"]:
-        train_dataset = TactileLLMDataset(image_processor, configs["train_files"], split_name="train", tokenizer=tokenizer, flip_p=configs["flip_p"])
-        train_loader = DataLoader(train_dataset, batch_size=configs["per_device_train_batch_size"], shuffle=True, worker_init_fn=seed_worker, generator=g)
-    if configs["val"]:
-        val_dataset = TactileLLMDataset(image_processor, configs["val_files"], split_name="val", tokenizer=tokenizer, flip_p=configs["flip_p"])
-        val_loader = DataLoader(val_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
-    if configs["test"]:
-        test_dataset = TactileLLMDataset(image_processor, configs["test_files"], split_name="test", tokenizer=tokenizer, flip_p=configs["flip_p"])
-        test_loader = DataLoader(test_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
+    # # load datasets
+    # if configs["use_clip"]:
+    #     image_processor = CLIPImageProcessor.from_pretrained(configs["use_clip"])
+    # if configs["train"]:
+    #     train_dataset = TactileLLMDataset(image_processor, configs["train_files"], split_name="train", tokenizer=tokenizer, flip_p=configs["flip_p"])
+    #     train_loader = DataLoader(train_dataset, batch_size=configs["per_device_train_batch_size"], shuffle=True, worker_init_fn=seed_worker, generator=g)
+    # if configs["val"]:
+    #     val_dataset = TactileLLMDataset(image_processor, configs["val_files"], split_name="val", tokenizer=tokenizer, flip_p=configs["flip_p"])
+    #     val_loader = DataLoader(val_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
+    # if configs["test"]:
+    #     test_dataset = TactileLLMDataset(image_processor, configs["test_files"], split_name="test", tokenizer=tokenizer, flip_p=configs["flip_p"])
+    #     test_loader = DataLoader(test_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
 
     # model instantiation
     if configs["lora_trained"]:
@@ -114,7 +114,7 @@ def train(configs, exp_name, g):
     else:
         model = MultimodalLLMForCausalLM(clip_model=configs["use_clip"], encoder_output_size=configs["encoder_output_size"], tokenizer=tokenizer, cutoff_len=configs["cutoff_len"], llm=llm, use_vqvae=configs["use_vqvae"], device=device)
     model.to(device)
-
+    print(model.llm_embedding_size)
     # 1) LLM setup
     if configs["use_lora"]:
         ## LoRA

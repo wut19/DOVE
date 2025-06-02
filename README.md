@@ -17,8 +17,22 @@ Repository containing DOVE tactile language model and multimodal tactile dataset
 ### Usage
 
 ```bash
+
+# create virtual environment for DOVE
+conda create -n dove python=3.8
+
 # Install dependencies
 pip install -r requirements.txt
+
+# preprocess the data and generate training samples and validation samples for each modality
+
+python utils/process_dataset.py --dataset_path data/color/ --output_path data/color/
+
+python utils/process_dataset.py --dataset_path data/temperature/ --output_path data/temperature/
+
+python utils/process_dataset.py --dataset_path data/teng --output_path data/teng
+
+python utils/process_dataset.py --dataset_path data/texture/data2 --output_path data/texture
 
 # Finetune CLIP encoder (modify config path in script)
 python train_clip_tactile.py
