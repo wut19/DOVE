@@ -2,5 +2,12 @@ __pycache__
 data
 exps
 _*/
-exps_custom
+exps_custom*
 processed_dataset
+
+analysis_results*
+
+detailed_analysis.py
+evaluate_tactile_predictions.py
+README_tactile_evaluation.md
+test_evaluator.py

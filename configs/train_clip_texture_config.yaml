@@ -1,5 +1,5 @@
 # general
-data_dir: _modalities/texture/data2
+data_dir: data/texture/data2
 data_split: 0.8
 cuda: 1
 seed: 0

@@ -19,7 +19,7 @@ from datetime import datetime
 import sys
 from transformers import CLIPImageProcessor
 from transformers.utils import logging
-
+import argparse
 
 def add_new_tokens(llm, tokenizer, new_tokens):
     new_tokens = list(set(new_tokens) - set(tokenizer.vocab.keys()))
@@ -95,18 +95,18 @@ def train(configs, exp_name, g):
         new_tokens = ['<tact_start>', '<tact_end>']
         add_new_tokens(llm, tokenizer, new_tokens)
 
-    # # load datasets
-    # if configs["use_clip"]:
-    #     image_processor = CLIPImageProcessor.from_pretrained(configs["use_clip"])
-    # if configs["train"]:
-    #     train_dataset = TactileLLMDataset(image_processor, configs["train_files"], split_name="train", tokenizer=tokenizer, flip_p=configs["flip_p"])
-    #     train_loader = DataLoader(train_dataset, batch_size=configs["per_device_train_batch_size"], shuffle=True, worker_init_fn=seed_worker, generator=g)
-    # if configs["val"]:
-    #     val_dataset = TactileLLMDataset(image_processor, configs["val_files"], split_name="val", tokenizer=tokenizer, flip_p=configs["flip_p"])
-    #     val_loader = DataLoader(val_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
-    # if configs["test"]:
-    #     test_dataset = TactileLLMDataset(image_processor, configs["test_files"], split_name="test", tokenizer=tokenizer, flip_p=configs["flip_p"])
-    #     test_loader = DataLoader(test_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
+    # load datasets
+    if configs["use_clip"]:
+        image_processor = CLIPImageProcessor.from_pretrained(configs["use_clip"])
+    if configs["train"]:
+        train_dataset = TactileLLMDataset(image_processor, configs["train_files"], split_name="train", tokenizer=tokenizer, flip_p=configs["flip_p"])
+        train_loader = DataLoader(train_dataset, batch_size=configs["per_device_train_batch_size"], shuffle=True, worker_init_fn=seed_worker, generator=g)
+    if configs["val"]:
+        val_dataset = TactileLLMDataset(image_processor, configs["val_files"], split_name="val", tokenizer=tokenizer, flip_p=configs["flip_p"])
+        val_loader = DataLoader(val_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
+    if configs["test"]:
+        test_dataset = TactileLLMDataset(image_processor, configs["test_files"], split_name="test", tokenizer=tokenizer, flip_p=configs["flip_p"])
+        test_loader = DataLoader(test_dataset, batch_size=configs["per_device_val_batch_size"], shuffle=False, worker_init_fn=seed_worker, generator=g)
 
     # model instantiation
     if configs["lora_trained"]:
@@ -333,8 +333,15 @@ def train(configs, exp_name, g):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Train TLLM model')
+    parser.add_argument('--stage', type=str, default='1', choices=['1', '2'],
+                      help='Training stage: 1 for projection layer training, 2 for end-to-end fine-tuning')
+    args = parser.parse_args()
+    assert args.stage in ["1", "2"], "Invalid stage"
+
+    # Load appropriate config based on stage
     exp_type = f"train_tllm"
-    config_path = f'configs/{exp_type}_config.yaml'
+    config_path = f"configs/{exp_type}_config_stage{args.stage}.yaml"
     # get configs
     with open(config_path, 'r') as file:
         configs = yaml.safe_load(file)

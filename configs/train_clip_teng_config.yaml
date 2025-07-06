@@ -1,5 +1,5 @@
 # general
-data_dir: _data
+data_dir: data/teng
 data_split: 0.8
 cuda: 3
 seed: 0

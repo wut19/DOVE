@@ -17,7 +17,7 @@ from datetime import datetime
 import sys
 from transformers import CLIPImageProcessor
 from transformers.utils import logging
-
+import argparse
 
 class PropertyClassifierEvaluator:
     def evaluate(self, preds, labels):
@@ -127,10 +127,12 @@ def main(configs, exp_name, device):
 
 
 if __name__ == "__main__":
-    # exp_type = f"train_clip_teng"
-    # exp_type = f"train_clip_color"
-    # exp_type = f"train_clip_temperature"
-    exp_type = f"train_clip_texture"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exp_type', type=str, default='train_clip_texture',
+                      help='Type of experiment to run (train_clip_texture, train_clip_color, train_clip_temperature, train_clip_teng)')
+    args = parser.parse_args()
+    exp_type = args.exp_type # train_clip_texture, train_clip_color, train_clip_temperature, train_clip_teng
+
     config_path = f'configs/{exp_type}_config.yaml'
     # get configs
     with open(config_path, 'r') as file:

@@ -1,5 +1,5 @@
 # general
-data_dir: _modalities/color
+data_dir: data/color
 data_split: 0.8
 cuda: 2
 seed: 0
