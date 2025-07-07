@@ -159,8 +159,10 @@ class MultimodalLLMForCausalLM(nn.Module):
         for chunk in question:
             chunk = chunk[0]
             if "img_tokens" in chunk:
-                visual_embeds = self.encoders[idxs[img_token_count]](tactile_frames[idxs[img_token_count]].to(self.device))
-                chunk_embeds = self.projects[idxs[img_token_count]](visual_embeds)
+                tactile_idx = img_token_count // len(idxs)
+                modality_idx = img_token_count % len(idxs)
+                visual_embeds = self.encoders[modality_idx](tactile_frames[tactile_idx][modality_idx].to(self.device))
+                chunk_embeds = self.projects[modality_idx](visual_embeds)
                 chunk_embeds = torch.unsqueeze(chunk_embeds, dim=0)
                 img_token_count += 1
             else:

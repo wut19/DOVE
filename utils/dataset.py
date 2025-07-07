@@ -281,12 +281,14 @@ class TactileLLMDataset(Dataset):
         # 2) get tokens
         answer_tokens = torch.tensor(self.tokenizer.encode(answer + f'{self.eos_token}'), dtype=torch.int64)[1:]
         # 3) get frame tensors
-        im = {}
-        for key, t in tactile[0].items():
-            im[key] = self.image_processor.preprocess(Image.open(t[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
-        # im = self.image_processor.preprocess(Image.open(tactile[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
-
-        return question, answer_tokens, im, tactile, question_type, question_step
+        imgs = []
+        for tac in tactile:
+            im = {}
+            for key, t in tac.items():
+                im[key] = self.image_processor.preprocess(Image.open(t[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+            # im = self.image_processor.preprocess(Image.open(tactile[0]).convert('RGB'), return_tensors='pt')['pixel_values'][0]
+            imgs.append(im)
+        return question, answer_tokens, imgs, tactile, question_type, question_step
     
 
 if __name__ == '__main__':
