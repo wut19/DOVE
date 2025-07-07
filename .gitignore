@@ -11,3 +11,12 @@ detailed_analysis.py
 evaluate_tactile_predictions.py
 README_tactile_evaluation.md
 test_evaluator.py
+
+*.zip
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tar.lzma
+*.tar.lz
+*.tar.Z
+*.tar.wim
