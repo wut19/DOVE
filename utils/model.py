@@ -152,17 +152,18 @@ class MultimodalLLMForCausalLM(nn.Module):
         return pre_label_token, post_label_token
 
     def forward(self, question, tactile_frames, answer_tokens, images=None):
-        idxs = ['color', 'temperature', 'texture', 'teng']
+        nn_idxs = ['color', 'temperature', 'texture', 'teng']
+        data_idxs = ['color', 'temperature', 'texture', 'material']
         # 1) question embeds
         question_embeds = []
         img_token_count = 0
         for chunk in question:
             chunk = chunk[0]
             if "img_tokens" in chunk:
-                tactile_idx = img_token_count // len(idxs)
-                modality_idx = img_token_count % len(idxs)
-                visual_embeds = self.encoders[modality_idx](tactile_frames[tactile_idx][modality_idx].to(self.device))
-                chunk_embeds = self.projects[modality_idx](visual_embeds)
+                tactile_idx = img_token_count // len(data_idxs)
+                modality_idx = img_token_count % len(data_idxs)
+                visual_embeds = self.encoders[nn_idxs[modality_idx]](tactile_frames[tactile_idx][data_idxs[modality_idx]].to(self.device))
+                chunk_embeds = self.projects[nn_idxs[modality_idx]](visual_embeds)
                 chunk_embeds = torch.unsqueeze(chunk_embeds, dim=0)
                 img_token_count += 1
             else:
