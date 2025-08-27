@@ -25,7 +25,15 @@ def get_sample_description(sample, properties):
 
 def get_sample_comparison(sample1, sample2, properties):
     """ Given a sample, compare another sample with it. Get the comparison results """
-    comparison = "I think "
+    # First generate descriptions for each sample
+    description1 = get_sample_description(sample1, properties)
+    description2 = get_sample_description(sample2, properties)
+    
+    # Start the comparison with the descriptions
+    comparison = f"For the first object: {description1}\n\nFor the second object: {description2}\n\n"
+    
+    # Now derive the comparison
+    comparison += "I think "
     all_same = True
     same_properties = []
     different_properties = []
@@ -65,6 +73,7 @@ def get_sample_comparison(sample1, sample2, properties):
 def get_sample_reason(sample, properties):
     """
     Reason about the object name and its function based on tactile inputs.
+    Focus on everyday, common objects that people encounter in daily life.
     
     Args:
         sample: Dictionary containing tactile properties (color, temperature, texture, material)
@@ -73,637 +82,411 @@ def get_sample_reason(sample, properties):
     Returns:
         String describing the reasoned object name and function
     """
-    # Object reasoning based on tactile properties
-    reasoning = ""
-    
     # Get property values
     color = sample.get('color', 'unknown')
     temperature = sample.get('temperature', 'normal')
     texture = sample.get('texture', 'unknown')
     material = sample.get('material', 'unknown')
     
-    # Reasoning logic based on property combinations
+    # Daily life object hypotheses
     object_hypotheses = []
     
-    # Highly specific color-material-texture-temperature combinations
-    
-    # RED objects - very specific identification
+    # RED objects - everyday items
     if color == 'red':
         if material == 'Metal' and temperature == 'hot':
             object_hypotheses.append({
-                'name': 'heated kitchen knife or soldering iron tip',
-                'function': 'for cutting hot food materials or joining electronic components through heat application',
-                'reasoning': 'The red color indicates emergency/warning context, metal material suggests durability and heat conduction, and hot temperature confirms active heating use',
+                'name': 'hot cooking pot handle or heated spoon',
+                'function': 'for cooking meals, stirring hot soup, or serving hot food at home',
+                'reasoning': 'Red color is common for kitchen utensils, metal conducts heat from cooking, and hot temperature indicates recent use in food preparation',
                 'confidence': 'high'
             })
-        elif material == 'Metal' and texture == 'D4':
+        elif material == 'Rubber' and texture == 'dimpled surface':
             object_hypotheses.append({
-                'name': 'emergency fire axe blade or rescue tool',
-                'function': 'for breaking through doors, cutting rescue openings, or emergency building access',
-                'reasoning': 'Red color signals emergency equipment, metal provides necessary strength, and grooved edge texture indicates a cutting edge design',
-                'confidence': 'high'
-            })
-        elif material == 'Rubber' and texture == 'D1':
-            object_hypotheses.append({
-                'name': 'dodgeball or kickball',
-                'function': 'for playground games, physical education classes, or recreational sports activities',
-                'reasoning': 'Red color enhances visibility for sports, rubber material provides bounce and safety, and dimpled surface texture improves grip during play',
-                'confidence': 'high'
-            })
-        elif material == 'Rubber' and texture == 'D7':
-            object_hypotheses.append({
-                'name': 'emergency vehicle tire tread or safety grip mat',
-                'function': 'for providing maximum traction on wet surfaces or emergency vehicle stopping power',
-                'reasoning': 'Red indicates emergency/safety use, rubber material provides flexibility and grip, and crescent-patterned texture maximizes surface contact for traction',
+                'name': 'playground ball or exercise ball',
+                'function': 'for children playing games, sports activities, or home fitness exercises',
+                'reasoning': 'Red color makes balls visible during play, rubber provides bounce and safety, and dimpled texture helps with grip during games',
                 'confidence': 'high'
             })
         elif material == 'PET' and temperature == 'cold':
             object_hypotheses.append({
-                'name': 'ketchup bottle or tomato juice container',
-                'function': 'for storing and dispensing condiments or vegetable-based beverages in refrigerated conditions',
-                'reasoning': 'Red color matches tomato-based products, PET material is food-safe and transparent, and cold temperature indicates refrigerated storage',
+                'name': 'tomato sauce bottle or fruit juice container',
+                'function': 'for storing condiments in the refrigerator or keeping drinks cold',
+                'reasoning': 'Red color matches tomato products or fruit drinks, PET is used for food containers, and cold temperature indicates refrigerator storage',
                 'confidence': 'high'
             })
-        elif material in ['ABS', 'PLA'] and texture == 'D1':
+        elif material == 'Cloth' and texture == 'smooth surface':
             object_hypotheses.append({
-                'name': '3D printed stress ball or fidget toy',
-                'function': 'for anxiety relief, hand exercise, or therapeutic grip strengthening activities',
-                'reasoning': 'Red color provides visual stimulation for therapy, ABS/PLA indicates custom 3D printing, and dimpled surface texture enhances tactile feedback',
+                'name': 'kitchen towel or napkin',
+                'function': 'for wiping hands while cooking, cleaning spills, or table setting',
+                'reasoning': 'Red is a popular color for kitchen textiles, cloth material absorbs moisture, and smooth texture is comfortable for cleaning',
                 'confidence': 'high'
             })
     
-    # WHITE objects - medical/clean applications
+    # WHITE objects - clean, hygienic daily items
     elif color == 'white':
-        if material == 'Acrylic' and temperature == 'cold':
+        if material == 'Cloth' and texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'laboratory sample container or medical specimen holder',
-                'function': 'for sterile storage of biological samples, chemical reagents, or pharmaceutical preparations',
-                'reasoning': 'White color indicates sterile medical environment, acrylic provides chemical resistance and transparency, and cold temperature preserves sample integrity',
+                'name': 'bath towel or face cloth',
+                'function': 'for drying after shower, washing face, or personal hygiene',
+                'reasoning': 'White shows cleanliness and allows easy spot detection, cloth absorbs water well, and smooth texture is gentle on skin',
                 'confidence': 'high'
             })
-        elif material == 'Cloth' and texture == 'D2':
+        elif material == 'PET' and temperature == 'cold':
             object_hypotheses.append({
-                'name': 'surgical bandage or medical gauze',
-                'function': 'for wound dressing, blood absorption, or post-operative care in clinical settings',
-                'reasoning': 'White color shows cleanliness and allows contamination detection, cloth material provides absorbency, and smooth weave texture indicates soft medical-grade material',
+                'name': 'milk bottle or yogurt container',
+                'function': 'for storing dairy products in the refrigerator or daily breakfast consumption',
+                'reasoning': 'White color is associated with dairy products, PET is food-safe, and cold temperature indicates refrigerated storage',
                 'confidence': 'high'
             })
-        elif material == 'Metal' and texture == 'D4':
+        elif material == 'Metal' and texture == 'grooved edge':
             object_hypotheses.append({
-                'name': 'surgical scalpel or medical cutting instrument',
-                'function': 'for precise tissue incision, surgical procedures, or medical sample preparation',
-                'reasoning': 'White color indicates medical sterilization, metal material ensures sharpness and durability, and grooved edge texture forms the cutting edge',
-                'confidence': 'high'
-            })
-        elif material in ['ABS', 'PLA'] and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'medical device housing or pharmaceutical dispenser',
-                'function': 'for protecting electronic medical equipment or controlled medication distribution',
-                'reasoning': 'White color meets medical cleanliness standards, ABS/PLA materials are chemical-resistant and moldable for complex shapes',
-                'confidence': 'medium'
-            })
-    
-    # BLACK objects - professional/technical
-    elif color == 'black':
-        if material == 'Metal' and texture == 'D4' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'precision machining tool or automotive wrench',
-                'function': 'for high-tolerance mechanical work, engine repair, or industrial assembly operations',
-                'reasoning': 'Black color reduces glare and shows professionalism, metal provides strength and precision, grooved edge texture creates the functional working edge, and normal temperature indicates ready-to-use condition',
-                'confidence': 'high'
-            })
-        elif material == 'Rubber' and texture == 'D7':
-            object_hypotheses.append({
-                'name': 'industrial safety mat or anti-vibration pad',
-                'function': 'for worker protection on factory floors, machinery vibration dampening, or electrical insulation',
-                'reasoning': 'Black color hides industrial dirt and provides UV resistance, rubber material absorbs shock and vibration, and crescent-patterned texture distributes weight and provides grip',
-                'confidence': 'high'
-            })
-        elif material in ['ABS', 'PLA'] and texture == 'D2':
-            object_hypotheses.append({
-                'name': 'electronic device enclosure or computer component housing',
-                'function': 'for protecting circuit boards, providing electromagnetic shielding, or housing control systems',
-                'reasoning': 'Black color provides professional appearance and heat dissipation, ABS/PLA materials offer electrical insulation, and smooth surface texture allows precise manufacturing tolerances',
-                'confidence': 'high'
-            })
-        elif material == 'Nylon' and texture == 'D7':
-            object_hypotheses.append({
-                'name': 'industrial cable management strip or machinery belt',
-                'function': 'for organizing electrical wiring systems or transmitting rotational power in manufacturing',
-                'reasoning': 'Black color provides industrial durability and UV resistance, nylon material offers flexibility and strength, and crescent-patterned texture provides grip and prevents slipping',
-                'confidence': 'high'
-            })
-    
-    # BLUE objects - utility/water-related
-    elif color == 'blue':
-        if material == 'PET' and temperature == 'cold':
-            object_hypotheses.append({
-                'name': 'filtered water bottle or hydration container',
-                'function': 'for storing purified drinking water, sports hydration, or outdoor activity fluid replacement',
-                'reasoning': 'Blue color psychologically associates with clean water and trust, PET material is food-safe and lightweight, and cold temperature indicates chilled beverage storage',
-                'confidence': 'high'
-            })
-        elif material == 'Cloth' and texture == 'D2':
-            object_hypotheses.append({
-                'name': 'industrial work uniform or mechanic coveralls',
-                'function': 'for protecting workers from oil stains, chemical spills, or industrial debris during maintenance',
-                'reasoning': 'Blue color is standard for industrial workwear and hides stains well, cloth material provides comfort and breathability, and smooth weave texture indicates durable construction',
+                'name': 'kitchen knife or can opener',
+                'function': 'for cutting vegetables, preparing meals, or opening food containers',
+                'reasoning': 'White handles are common in kitchen tools for hygiene visibility, metal provides sharpness, and grooved edge indicates cutting function',
                 'confidence': 'high'
             })
         elif material == 'Acrylic' and temperature == 'normal':
             object_hypotheses.append({
-                'name': 'laboratory beaker or chemical mixing vessel',
-                'function': 'for precise liquid measurement, chemical reactions, or solution preparation in research',
-                'reasoning': 'Blue color helps with liquid level visibility, acrylic material provides chemical resistance and clarity, and normal temperature indicates standard lab conditions',
-                'confidence': 'medium'
+                'name': 'storage container or food box',
+                'function': 'for organizing kitchen items, storing leftovers, or keeping food fresh',
+                'reasoning': 'White acrylic is popular for kitchen storage, provides transparency to see contents, and normal temperature indicates pantry storage',
+                'confidence': 'high'
             })
     
-    # GREEN objects - environmental/outdoor
+    # BLACK objects - electronics and tools
+    elif color == 'black':
+        if material == 'ABS' and texture == 'smooth surface':
+            object_hypotheses.append({
+                'name': 'TV remote control or smartphone',
+                'function': 'for controlling entertainment devices or daily communication',
+                'reasoning': 'Black is standard for electronics, ABS plastic is durable for frequent handling, and smooth surface is comfortable to hold',
+                'confidence': 'high'
+            })
+        elif material == 'Rubber' and texture == 'crescent-patterned surface':
+            object_hypotheses.append({
+                'name': 'car tire or bicycle tire',
+                'function': 'for daily transportation, commuting to work, or weekend cycling',
+                'reasoning': 'Black rubber is standard for tires, provides durability, and textured surface gives road traction for safe driving',
+                'confidence': 'high'
+            })
+        elif material == 'Metal' and texture == 'grooved edge':
+            object_hypotheses.append({
+                'name': 'screwdriver or wrench',
+                'function': 'for home repairs, assembling furniture, or fixing household items',
+                'reasoning': 'Black tools are common for durability, metal provides strength, and grooved edge gives grip for turning screws',
+                'confidence': 'high'
+            })
+        elif material == 'Cloth' and texture == 'smooth surface':
+            object_hypotheses.append({
+                'name': 'work shirt or pants',
+                'function': 'for daily work attire, professional appearance, or casual wear',
+                'reasoning': 'Black clothing is versatile and professional, cloth provides comfort, and smooth texture is suitable for daily wear',
+                'confidence': 'high'
+            })
+    
+    # BLUE objects - water-related and casual items
+    elif color == 'blue':
+        if material == 'PET' and temperature == 'cold':
+            object_hypotheses.append({
+                'name': 'water bottle or sports drink',
+                'function': 'for daily hydration, exercise, or staying refreshed throughout the day',
+                'reasoning': 'Blue suggests clean water or refreshing drinks, PET is safe for beverages, and cold temperature keeps drinks refreshing',
+                'confidence': 'high'
+            })
+        elif material == 'Cloth' and texture == 'smooth surface':
+            object_hypotheses.append({
+                'name': 'jeans or casual shirt',
+                'function': 'for everyday casual wear, weekend activities, or comfortable clothing',
+                'reasoning': 'Blue is classic for casual clothing like jeans, cloth provides comfort, and smooth texture is pleasant to wear',
+                'confidence': 'high'
+            })
+        elif material == 'Acrylic' and temperature == 'normal':
+            object_hypotheses.append({
+                'name': 'bathroom cup or toothbrush holder',
+                'function': 'for daily oral hygiene, holding bathroom items, or morning routine',
+                'reasoning': 'Blue acrylic is popular in bathrooms, easy to clean, and normal temperature indicates indoor bathroom use',
+                'confidence': 'high'
+            })
+    
+    # GREEN objects - nature and food-related
     elif color == 'green':
         if material == 'PET' and temperature == 'normal':
             object_hypotheses.append({
-                'name': 'recycled beverage bottle or eco-friendly container',
-                'function': 'for sustainable liquid storage, environmental waste reduction, or green packaging solutions',
-                'reasoning': 'Green color symbolizes environmental friendliness and recycling, PET material is highly recyclable, and normal temperature indicates standard storage conditions',
+                'name': 'soda bottle or juice container',
+                'function': 'for daily beverages, lunch drinks, or refreshment storage',
+                'reasoning': 'Green is common for certain drink brands, PET is standard for beverages, and normal temperature indicates room storage',
                 'confidence': 'high'
             })
-        elif material in ['ABS', 'PLA'] and texture == 'D1':
+        elif material == 'Cloth' and texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'outdoor camping gear component or hiking equipment part',
-                'function': 'for wilderness survival, portable shelter assembly, or outdoor recreation activities',
-                'reasoning': 'Green color provides natural camouflage in outdoor settings, ABS/PLA materials are lightweight and durable, and dimpled surface texture provides grip for outdoor handling',
-                'confidence': 'medium'
+                'name': 'garden gloves or cleaning cloth',
+                'function': 'for gardening work, household cleaning, or outdoor activities',
+                'reasoning': 'Green color suits outdoor work, cloth provides comfort and absorption, and smooth texture is practical for handling',
+                'confidence': 'high'
             })
-        elif material == 'Rubber' and texture == 'D7':
+        elif material == 'Rubber' and texture == 'crescent-patterned surface':
             object_hypotheses.append({
-                'name': 'garden tool grip or outdoor equipment handle',
-                'function': 'for landscaping work, plant cultivation, or outdoor maintenance activities with secure handling',
-                'reasoning': 'Green color blends with garden environment, rubber material provides comfortable grip and weather resistance, and crescent-patterned texture prevents slipping during use',
-                'confidence': 'medium'
+                'name': 'garden hose or outdoor mat',
+                'function': 'for watering plants, cleaning outdoor areas, or entrance protection',
+                'reasoning': 'Green blends with outdoor settings, rubber withstands weather, and textured surface provides grip and drainage',
+                'confidence': 'high'
             })
     
-    # YELLOW objects - warning/construction
+    # YELLOW objects - bright and attention-getting
     elif color == 'yellow':
-        if material == 'Metal' and texture == 'D4':
+        if material == 'Rubber' and texture == 'dimpled surface':
             object_hypotheses.append({
-                'name': 'construction utility knife or safety cutting tool',
-                'function': 'for building material cutting, safety rope severing, or emergency rescue operations',
-                'reasoning': 'Yellow color provides high visibility for safety compliance, metal material ensures cutting effectiveness, and grooved edge texture forms the sharp cutting edge',
+                'name': 'tennis ball or dog toy',
+                'function': 'for sports activities, pet play, or recreational games',
+                'reasoning': 'Yellow is standard for tennis balls and visible for pets, rubber provides bounce, and dimpled texture improves grip',
                 'confidence': 'high'
             })
-        elif material in ['ABS', 'PLA'] and texture == 'D7':
+        elif material == 'PET' and temperature == 'cold':
             object_hypotheses.append({
-                'name': 'safety warning marker or construction barrier component',
-                'function': 'for hazard identification, traffic control, or construction zone safety demarcation',
-                'reasoning': 'Yellow color maximizes visibility for safety warnings, ABS/PLA materials provide weather resistance, and crescent-patterned texture may help with stacking or interlocking',
+                'name': 'lemon juice bottle or sports drink',
+                'function': 'for cooking ingredients, refreshing drinks, or post-workout hydration',
+                'reasoning': 'Yellow matches citrus flavors, PET is food-safe, and cold temperature keeps drinks refreshing',
                 'confidence': 'high'
             })
-        elif material == 'Rubber' and texture == 'D1':
+        elif material == 'Cloth' and texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'safety training ball or visibility sports equipment',
-                'function': 'for emergency response training, high-visibility sports activities, or safety education programs',
-                'reasoning': 'Yellow color ensures high visibility during training, rubber material provides safe impact characteristics, and dimpled surface texture improves grip and handling',
+                'name': 'cleaning sponge or dish cloth',
+                'function': 'for washing dishes, cleaning surfaces, or kitchen maintenance',
+                'reasoning': 'Yellow is popular for cleaning supplies, cloth absorbs well, and smooth texture is gentle on surfaces',
+                'confidence': 'high'
+            })
+    
+    # Temperature-based reasoning for daily objects
+    if temperature == 'hot':
+        if material == 'Metal':
+            object_hypotheses.append({
+                'name': 'coffee mug handle or cooking utensil',
+                'function': 'for drinking hot beverages or cooking meals',
+                'reasoning': 'Hot temperature indicates recent contact with hot drinks or cooking, metal conducts heat from daily use',
+                'confidence': 'high'
+            })
+        elif material == 'Cloth':
+            object_hypotheses.append({
+                'name': 'oven mitt or hot towel',
+                'function': 'for handling hot cookware or warm comfort during daily activities',
+                'reasoning': 'Hot temperature shows recent heating, cloth provides insulation and comfort for safe handling',
+                'confidence': 'high'
+            })
+    
+    elif temperature == 'cold':
+        if material == 'Metal':
+            object_hypotheses.append({
+                'name': 'refrigerator handle or ice cream scoop',
+                'function': 'for accessing cold storage or serving frozen treats',
+                'reasoning': 'Cold temperature indicates contact with refrigerated items, metal conducts cold from daily kitchen use',
+                'confidence': 'high'
+            })
+        elif material == 'PET':
+            object_hypotheses.append({
+                'name': 'cold beverage bottle or yogurt container',
+                'function': 'for refreshing drinks or refrigerated food storage',
+                'reasoning': 'Cold temperature indicates refrigerator storage, PET is common for food and drink containers',
+                'confidence': 'high'
+            })
+    
+    # Texture-based daily object reasoning
+    if texture == 'dimpled surface':
+        if material == 'Rubber':
+            object_hypotheses.append({
+                'name': 'stress ball or massage ball',
+                'function': 'for stress relief during work or muscle relaxation at home',
+                'reasoning': 'Dimpled texture provides tactile stimulation, rubber offers comfortable firmness for daily stress management',
+                'confidence': 'high'
+            })
+        elif material == 'PET':
+            object_hypotheses.append({
+                'name': 'sports drink bottle or textured container',
+                'function': 'for better grip during exercise or preventing slipping during daily use',
+                'reasoning': 'Dimpled texture improves grip, PET is lightweight and safe for beverages during daily activities',
                 'confidence': 'medium'
             })
     
-    # Temperature-specific detailed reasoning
-    if temperature == 'hot':
-        if material == 'Metal' and texture == 'D4':
+    elif texture == 'smooth surface':
+        if material == 'Acrylic':
             object_hypotheses.append({
-                'name': 'heated chef knife or industrial cutting blade',
-                'function': 'for cutting through hard materials like frozen foods, plastics, or heated manufacturing processes',
-                'reasoning': 'Hot temperature indicates active heating for enhanced cutting, metal material conducts heat effectively, and grooved edge texture provides the cutting edge geometry',
+                'name': 'picture frame or storage box',
+                'function': 'for displaying family photos or organizing household items',
+                'reasoning': 'Smooth surface is easy to clean, acrylic provides clarity and durability for home decoration',
                 'confidence': 'high'
             })
-        elif material == 'Wood' and texture == 'D4':
+        elif material == 'Cloth':
             object_hypotheses.append({
-                'name': 'heated wooden cooking utensil or craft tool',
-                'function': 'for stirring hot sauces, wood burning art, or heated food preparation without heat transfer',
-                'reasoning': 'Hot temperature shows recent contact with heat source, wood material insulates handle from heat transfer, and grooved edge provides functional edge or grip',
-                'confidence': 'high'
-            })
-    elif temperature == 'cold':
-        if material == 'Metal' and texture == 'D2':
-            object_hypotheses.append({
-                'name': 'refrigerated surgical instrument or precision cold tool',
-                'function': 'for cryogenic procedures, cold-sensitive material handling, or temperature-controlled manufacturing',
-                'reasoning': 'Cold temperature indicates refrigerated storage for precision work, metal material maintains temperature effectively, and smooth surface texture allows precise manipulation',
+                'name': 'bedsheet or pillow case',
+                'function': 'for comfortable sleep and daily rest',
+                'reasoning': 'Smooth texture is comfortable against skin, cloth provides softness for daily sleeping comfort',
                 'confidence': 'high'
             })
     
-    # Texture-specific detailed reasoning
-    if texture == 'D1':  # Dimpled surface
-        if material == 'Rubber' and temperature == 'normal':
+    elif texture == 'grooved edge':
+        if material == 'Metal':
             object_hypotheses.append({
-                'name': 'massage therapy ball or physical rehabilitation sphere',
-                'function': 'for muscle tension relief, trigger point therapy, or physical therapy rehabilitation exercises',
-                'reasoning': 'Dimpled surface texture provides therapeutic pressure points, rubber material offers appropriate firmness and safety, and normal temperature ensures comfortable therapeutic use',
+                'name': 'kitchen knife or bottle opener',
+                'function': 'for daily food preparation or opening containers',
+                'reasoning': 'Grooved edge provides cutting function, metal ensures sharpness for daily kitchen tasks',
                 'confidence': 'high'
             })
         elif material == 'Wood':
             object_hypotheses.append({
-                'name': 'wooden massage tool or acupressure sphere',
-                'function': 'for traditional massage therapy, reflexology treatment, or holistic healing practices',
-                'reasoning': 'Dimpled surface texture creates acupressure points, wood material provides natural therapeutic properties and appropriate hardness for pressure point therapy',
-                'confidence': 'medium'
-            })
-    
-    elif texture == 'D4':  # Grooved edge
-        if material == 'Wood' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'wooden cutting board edge or kitchen prep tool',
-                'function': 'for food preparation, ingredient chopping, or culinary presentation with guided cutting',
-                'reasoning': 'Grooved edge texture provides cutting guide or edge, wood material is food-safe and knife-friendly, and normal temperature indicates ready-to-use kitchen condition',
-                'confidence': 'high'
-            })
-        elif material == 'Nylon' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'industrial cable guide or machinery track component',
-                'function': 'for directing moving parts, cable management, or precision mechanical guidance systems',
-                'reasoning': 'Grooved edge texture creates guidance channel, nylon material provides low friction and durability, and normal temperature indicates standard operating conditions',
+                'name': 'cutting board or wooden spoon',
+                'function': 'for food preparation or cooking daily meals',
+                'reasoning': 'Grooved edge aids in food cutting, wood is food-safe and traditional for kitchen use',
                 'confidence': 'high'
             })
     
-    elif texture == 'D7':  # Crescent-patterned surface
-        if material == 'Rubber' and temperature == 'normal':
+    # Material-specific daily objects
+    if material == 'Wood':
+        if temperature == 'normal':
             object_hypotheses.append({
-                'name': 'anti-slip shoe sole or safety flooring',
-                'function': 'for preventing workplace accidents, enhanced walking stability, or specialized footwear traction',
-                'reasoning': 'Crescent-patterned texture maximizes surface contact for traction, rubber material provides grip and flexibility, and normal temperature indicates standard use conditions',
+                'name': 'wooden spoon or cutting board',
+                'function': 'for cooking, food preparation, or serving meals',
+                'reasoning': 'Wood is traditional for kitchen tools, safe for food contact, and normal temperature indicates ready for use',
                 'confidence': 'high'
             })
-        elif material == 'Metal':
+        elif texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'industrial grip plate or machinery safety surface',
-                'function': 'for worker safety on platforms, enhanced grip on tools, or anti-slip industrial applications',
-                'reasoning': 'Crescent-patterned texture provides mechanical grip texture, metal material offers durability in harsh industrial environments and load-bearing capacity',
-                'confidence': 'high'
+                'name': 'furniture handle or decorative item',
+                'function': 'for daily use of cabinets, drawers, or home decoration',
+                'reasoning': 'Wood provides natural beauty, smooth surface is comfortable to touch, suitable for daily furniture use',
+                'confidence': 'medium'
             })
     
-    # Material-specific detailed applications
-    if material == 'Cloth':
-        if temperature == 'hot':
+    elif material == 'Nylon':
+        if texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'heated therapeutic compress or warming pad cover',
-                'function': 'for pain relief therapy, muscle relaxation, or medical heat treatment applications',
-                'reasoning': 'Hot temperature indicates therapeutic heating, cloth material provides safe skin contact and heat distribution for medical applications',
-                'confidence': 'medium'
-            })
-        elif texture == 'D5':
-            object_hypotheses.append({
-                'name': 'microfiber cleaning cloth or precision wiping material',
-                'function': 'for delicate surface cleaning, optical lens care, or dust-free maintenance procedures',
-                'reasoning': 'Fine textured surface provides gentle cleaning action, cloth material offers absorbency and surface safety for delicate cleaning tasks',
-                'confidence': 'medium'
-            })
-        elif color == 'white' and temperature == 'cold':
-            object_hypotheses.append({
-                'name': 'sterile medical drape or surgical covering',
-                'function': 'for maintaining sterile fields during medical procedures or protecting surfaces from contamination',
-                'reasoning': 'White color indicates medical sterility, cloth material provides flexible coverage, and cold temperature suggests sterile storage conditions',
+                'name': 'toothbrush or cleaning brush',
+                'function': 'for daily oral hygiene or household cleaning',
+                'reasoning': 'Nylon is standard for brush bristles, smooth surface is gentle yet effective for daily cleaning',
                 'confidence': 'high'
             })
-        elif color == 'blue' and texture == 'D1':
+        elif color in ['white', 'blue']:
             object_hypotheses.append({
-                'name': 'workout towel or gym equipment cover',
-                'function': 'for moisture absorption during exercise, equipment protection, or athletic facility hygiene maintenance',
-                'reasoning': 'Blue color is common in athletic settings, cloth material provides absorbency, and dimpled texture enhances moisture-wicking properties',
+                'name': 'shower curtain or laundry bag',
+                'function': 'for bathroom privacy or organizing clothes',
+                'reasoning': 'Nylon is water-resistant and durable, suitable colors for bathroom and laundry use',
                 'confidence': 'medium'
             })
     
     elif material == 'Resin':
-        if temperature == 'normal' and texture == 'D2':
+        if texture == 'smooth surface':
             object_hypotheses.append({
-                'name': 'decorative art piece or custom jewelry component',
-                'function': 'for artistic display, personalized accessories, or handcrafted decorative applications',
-                'reasoning': 'Smooth surface texture allows fine detail in casting, resin material enables complex shapes and transparent effects, and normal temperature indicates completed curing process',
+                'name': 'decorative ornament or jewelry',
+                'function': 'for home decoration or personal accessories',
+                'reasoning': 'Resin allows detailed crafting, smooth surface provides attractive finish for decorative items',
                 'confidence': 'medium'
             })
-        elif color == 'yellow' and texture == 'D4':
+        elif color in ['white', 'black']:
             object_hypotheses.append({
-                'name': 'safety marker or warning component',
-                'function': 'for hazard identification, construction safety marking, or emergency equipment visibility enhancement',
-                'reasoning': 'Yellow color provides high visibility for safety, resin material offers weather resistance, and grooved texture may aid in mounting or gripping',
-                'confidence': 'medium'
-            })
-        elif temperature == 'hot':
-            object_hypotheses.append({
-                'name': 'heated craft tool or molding implement',
-                'function': 'for shaping materials, craft applications, or heated forming processes requiring precise temperature control',
-                'reasoning': 'Hot temperature indicates active heating for material work, resin material maintains shape under heat stress for precision tools',
+                'name': 'phone case or small container',
+                'function': 'for protecting devices or storing small items',
+                'reasoning': 'Resin provides protection and customization, popular colors for everyday accessories',
                 'confidence': 'medium'
             })
     
-    elif material == 'Acrylic':
-        if color == 'green' and texture == 'D2':
-            object_hypotheses.append({
-                'name': 'greenhouse panel or plant protection shield',
-                'function': 'for plant cultivation, weather protection, or controlled growing environment maintenance',
-                'reasoning': 'Green color blends with plant environments, acrylic material provides transparency and weather resistance, and smooth surface allows easy cleaning',
-                'confidence': 'high'
-            })
-        elif temperature == 'hot' and texture == 'D4':
-            object_hypotheses.append({
-                'name': 'heated display case edge or warming panel',
-                'function': 'for temperature-controlled displays, food warming applications, or climate-controlled exhibition cases',
-                'reasoning': 'Hot temperature indicates active heating, acrylic provides transparency and heat resistance, and grooved edge allows secure mounting',
-                'confidence': 'medium'
-            })
-        elif color == 'red' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'emergency equipment cover or safety display panel',
-                'function': 'for protecting emergency tools, displaying safety information, or providing clear access to critical equipment',
-                'reasoning': 'Red color signals emergency applications, acrylic material provides protection while maintaining visibility of contents',
-                'confidence': 'high'
-            })
-    
-    elif material == 'Nylon':
-        if texture == 'D1' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'sports equipment grip or athletic gear component',
-                'function': 'for enhancing grip on sporting goods, providing comfort during athletic activities, or improving performance equipment handling',
-                'reasoning': 'Dimpled texture enhances grip performance, nylon material provides durability and flexibility for athletic applications',
-                'confidence': 'high'
-            })
-        elif color == 'white' and texture == 'D5':
-            object_hypotheses.append({
-                'name': 'precision filter material or clean room component',
-                'function': 'for air filtration, particle removal, or maintaining sterile environments in laboratory settings',
-                'reasoning': 'White color indicates cleanliness standards, nylon material provides filtration properties, and fine texture creates effective barrier',
-                'confidence': 'medium'
-            })
-        elif temperature == 'cold' and texture == 'D7':
-            object_hypotheses.append({
-                'name': 'cold storage packaging or refrigeration component',
-                'function': 'for maintaining low temperatures, protecting frozen goods, or providing insulation in cooling systems',
-                'reasoning': 'Cold temperature indicates refrigeration use, nylon material provides flexibility at low temperatures, and textured surface aids in handling',
-                'confidence': 'medium'
-            })
-    
-    elif material == 'Wood':
-        if color == 'red' and texture == 'D2':
-            object_hypotheses.append({
-                'name': 'decorative cutting board or ceremonial serving tray',
-                'function': 'for food presentation, special occasion serving, or decorative kitchen display with food-safe properties',
-                'reasoning': 'Red wood suggests decorative staining, smooth surface is food-safe, and wood material provides natural antimicrobial properties',
-                'confidence': 'high'
-            })
-        elif temperature == 'cold' and texture == 'D1':
-            object_hypotheses.append({
-                'name': 'massage therapy tool or reflexology instrument',
-                'function': 'for therapeutic pressure point treatment, muscle therapy, or traditional healing practices requiring cool application',
-                'reasoning': 'Cold temperature provides therapeutic cooling effect, wood material offers appropriate firmness, and dimpled texture creates pressure points',
-                'confidence': 'medium'
-            })
-        elif color == 'green' and texture == 'D7':
-            object_hypotheses.append({
-                'name': 'garden tool handle or outdoor equipment component',
-                'function': 'for landscaping work, plant care, or outdoor maintenance requiring comfortable and secure grip',
-                'reasoning': 'Green color blends with garden environment, wood material provides natural grip comfort, and textured surface prevents slipping',
-                'confidence': 'high'
-            })
-    
-    # Additional specific temperature-texture combinations
-    if temperature == 'hot':
-        if texture == 'D1' and material in ['Rubber', 'Wood']:
-            object_hypotheses.append({
-                'name': 'heated massage stone or therapeutic tool',
-                'function': 'for hot stone therapy, muscle relaxation, or spa treatment applications requiring controlled heat application',
-                'reasoning': 'Hot temperature provides therapeutic heating, dimpled texture creates pressure points for massage, and material ensures safe heat retention',
-                'confidence': 'high'
-            })
-        elif texture == 'D2' and material == 'Acrylic':
-            object_hypotheses.append({
-                'name': 'heated display surface or warming plate',
-                'function': 'for food warming, display heating, or temperature-controlled presentation requiring transparent heat distribution',
-                'reasoning': 'Hot temperature indicates active heating function, smooth surface allows easy cleaning, and acrylic provides heat-resistant transparency',
-                'confidence': 'medium'
-            })
-    
-    elif temperature == 'cold':
-        if texture == 'D5' and material in ['Metal', 'Acrylic']:
-            object_hypotheses.append({
-                'name': 'precision cooling tool or laboratory instrument',
-                'function': 'for temperature-sensitive procedures, precision cooling applications, or scientific measurement requiring stable cold conditions',
-                'reasoning': 'Cold temperature provides controlled cooling, fine texture allows precise manipulation, and material ensures temperature stability',
-                'confidence': 'high'
-            })
-        elif texture == 'D7' and material == 'Rubber':
-            object_hypotheses.append({
-                'name': 'cold therapy pad or cryogenic application tool',
-                'function': 'for injury treatment, inflammation reduction, or medical cold therapy requiring flexible cold application',
-                'reasoning': 'Cold temperature provides therapeutic cooling, textured surface enhances contact, and rubber material remains flexible when cold',
-                'confidence': 'high'
-            })
-    
-    # Additional texture-specific combinations
-    if texture == 'D5':  # Fine textured
-        if material == 'Metal' and color == 'black':
-            object_hypotheses.append({
-                'name': 'precision electronic component or semiconductor device',
-                'function': 'for electronic circuits, computer components, or high-tech applications requiring precise surface characteristics',
-                'reasoning': 'Fine texture provides precise surface finish, black color aids heat dissipation, and metal material ensures electrical conductivity',
-                'confidence': 'high'
-            })
-        elif material == 'PET' and temperature == 'normal':
-            object_hypotheses.append({
-                'name': 'specialty container or precision storage vessel',
-                'function': 'for sensitive material storage, laboratory sample containment, or applications requiring controlled surface properties',
-                'reasoning': 'Fine texture provides controlled surface characteristics, PET material ensures chemical resistance, and normal temperature indicates standard storage',
-                'confidence': 'medium'
-            })
-    
-    # Edge cases and unusual combinations
-    if material == 'ABS' or material == 'PLA':
-        if color == 'white' and texture == 'D5' and temperature == 'cold':
-            object_hypotheses.append({
-                'name': '3D printed medical device or laboratory tool',
-                'function': 'for specialized medical applications, custom laboratory equipment, or precision scientific instruments requiring sterile cold storage',
-                'reasoning': 'White color meets medical standards, fine texture allows precise 3D printing detail, plastic material enables custom shapes, and cold temperature indicates sterile storage',
-                'confidence': 'high'
-            })
-        elif color == 'black' and temperature == 'hot':
-            object_hypotheses.append({
-                'name': 'heated 3D printer component or thermal processing tool',
-                'function': 'for additive manufacturing, thermal processing, or heated fabrication requiring temperature-controlled plastic components',
-                'reasoning': 'Black color aids heat absorption and dissipation, hot temperature indicates active thermal processing, and plastic material suitable for heated applications',
-                'confidence': 'medium'
-            })
-    
-    # Multi-property specific cases
-    if color == 'yellow' and material == 'Rubber' and temperature == 'cold':
+    # Common daily combinations
+    if color == 'white' and material == 'Cloth' and temperature == 'hot':
         object_hypotheses.append({
-            'name': 'safety equipment for cold environments or arctic gear component',
-            'function': 'for cold weather safety, arctic equipment identification, or low-temperature emergency applications requiring high visibility',
-            'reasoning': 'Yellow color ensures visibility in harsh conditions, rubber material remains flexible in cold, and cold temperature indicates arctic/winter use conditions',
+            'name': 'fresh laundry or heated towel',
+            'function': 'for daily hygiene, comfort, or household maintenance',
+            'reasoning': 'White cloth shows cleanliness, hot temperature indicates recent washing or heating for comfort',
             'confidence': 'high'
         })
     
-    if color == 'blue' and material == 'Metal' and texture == 'D5':
+    if color == 'black' and material == 'Rubber' and temperature == 'normal':
         object_hypotheses.append({
-            'name': 'precision water system component or hydraulic instrument',
-            'function': 'for water management systems, hydraulic control, or fluid handling requiring precise surface characteristics and reliability',
-            'reasoning': 'Blue color associates with water systems, metal material provides durability and pressure resistance, and fine texture ensures precise sealing and operation',
+            'name': 'phone case or computer mouse',
+            'function': 'for protecting devices or daily computer work',
+            'reasoning': 'Black rubber is common for device protection, normal temperature indicates regular daily use',
             'confidence': 'high'
         })
     
-    if color == 'green' and temperature == 'hot' and material in ['Wood', 'Rubber']:
-        object_hypotheses.append({
-            'name': 'heated garden tool or greenhouse equipment',
-            'function': 'for plant cultivation, heated greenhouse applications, or agricultural equipment requiring controlled temperature for optimal plant growth',
-            'reasoning': 'Green color blends with plant environment, hot temperature provides growing heat, and material ensures safe handling during heated agricultural work',
-            'confidence': 'medium'
-        })
-    
-    # Additional rare but important combinations
-    if material == 'PET':
-        if color == 'white' and texture == 'D7' and temperature == 'hot':
-            object_hypotheses.append({
-                'name': 'heated food packaging or thermal processing container',
-                'function': 'for hot food storage, thermal food processing, or heated packaging applications requiring food-safe materials',
-                'reasoning': 'White color meets food safety visibility standards, PET material is food-safe at controlled temperatures, textured surface aids grip handling, and hot temperature indicates thermal processing use',
-                'confidence': 'high'
-            })
-        elif color == 'black' and temperature == 'cold':
-            object_hypotheses.append({
-                'name': 'UV-protected storage container or light-sensitive material holder',
-                'function': 'for protecting light-sensitive contents, UV filtration, or cold storage of materials requiring darkness',
-                'reasoning': 'Black color provides UV protection and light blocking, PET material offers chemical resistance, and cold temperature indicates preservation storage',
-                'confidence': 'medium'
-            })
-    
-    # Uncommon texture combinations
-    if texture == 'D1' and texture == 'D7':  # This shouldn't happen but adding fallback
-        object_hypotheses.append({
-            'name': 'complex textured specialized tool or custom equipment',
-            'function': 'for specialized applications requiring multiple texture characteristics or custom manufacturing solutions',
-            'reasoning': 'Multiple texture patterns suggest specialized custom manufacturing for specific functional requirements',
-            'confidence': 'low'
-        })
-    
-    # Material combinations that might be rare
-    if material in ['Resin', 'Acrylic'] and color == 'black' and texture == 'D1':
-        object_hypotheses.append({
-            'name': 'optical component or precision instrument part',
-            'function': 'for light control, optical applications, or precision equipment requiring specific surface characteristics',
-            'reasoning': 'Black color provides light absorption, transparent materials enable optical properties, and textured surface creates controlled light interaction',
-            'confidence': 'medium'
-        })
-    
-    # Temperature edge cases
-    if temperature == 'hot' and material == 'Cloth' and texture == 'D7':
-        object_hypotheses.append({
-            'name': 'heated protective clothing or thermal safety gear',
-            'function': 'for worker protection in high-temperature environments, heated safety applications, or thermal protective equipment',
-            'reasoning': 'Hot temperature indicates thermal protection needs, cloth material provides comfort and flexibility, and textured surface enhances protective characteristics',
-            'confidence': 'medium'
-        })
-    
-    # Default fallbacks for unusual combinations
+    # Default fallbacks for daily objects
     if not object_hypotheses:
-        # Try broader material-based reasoning
         if material == 'Metal':
             object_hypotheses.append({
-                'name': 'metal tool or mechanical component',
-                'function': 'for mechanical applications, structural support, or industrial use requiring metal durability and strength',
-                'reasoning': 'Metal material suggests mechanical or structural applications requiring durability, though specific function requires more detailed analysis',
-                'confidence': 'low'
+                'name': 'kitchen utensil or household tool',
+                'function': 'for daily cooking, food preparation, or home maintenance',
+                'reasoning': 'Metal is commonly used in kitchen and household items for durability and functionality',
+                'confidence': 'medium'
             })
-        elif material in ['Rubber', 'Nylon']:
+        elif material == 'Cloth':
             object_hypotheses.append({
-                'name': 'flexible component or safety equipment',
-                'function': 'for applications requiring flexibility, shock absorption, or protective characteristics',
-                'reasoning': 'Flexible materials suggest safety, comfort, or protective applications, though specific identification requires additional context',
-                'confidence': 'low'
-            })
-        elif material in ['ABS', 'PLA', 'Acrylic', 'Resin']:
-            object_hypotheses.append({
-                'name': 'manufactured component or custom device',
-                'function': 'for specialized applications, custom manufacturing, or precision molded parts requiring specific material properties',
-                'reasoning': 'Synthetic materials suggest manufactured applications with specific engineering requirements, though exact purpose needs more analysis',
-                'confidence': 'low'
-            })
-        elif material in ['Cloth', 'Wood']:
-            object_hypotheses.append({
-                'name': 'natural material object or traditional tool',
-                'function': 'for applications utilizing natural material properties, traditional craftsmanship, or sustainable solutions',
-                'reasoning': 'Natural materials suggest traditional applications or sustainable solutions, though specific function requires additional property analysis',
-                'confidence': 'low'
+                'name': 'clothing item or household textile',
+                'function': 'for daily wear, comfort, or home cleaning',
+                'reasoning': 'Cloth is fundamental for clothing and household textiles used in daily life',
+                'confidence': 'medium'
             })
         elif material == 'PET':
             object_hypotheses.append({
-                'name': 'container or packaging component',
-                'function': 'for storage, transportation, or containment applications requiring chemical resistance and transparency',
-                'reasoning': 'PET material commonly used for containment applications, though specific use requires analysis of other properties',
-                'confidence': 'low'
+                'name': 'food container or beverage bottle',
+                'function': 'for storing drinks, food, or daily consumption items',
+                'reasoning': 'PET is widely used for food and beverage containers in daily life',
+                'confidence': 'medium'
+            })
+        elif material in ['ABS', 'PLA']:
+            object_hypotheses.append({
+                'name': 'household item or electronic device part',
+                'function': 'for daily convenience, organization, or device functionality',
+                'reasoning': 'Plastic materials are common in household items and electronics used daily',
+                'confidence': 'medium'
+            })
+        elif material == 'Rubber':
+            object_hypotheses.append({
+                'name': 'grip handle or protective item',
+                'function': 'for comfortable handling or protection during daily activities',
+                'reasoning': 'Rubber provides comfort and protection in many daily-use items',
+                'confidence': 'medium'
             })
         else:
-            # Ultimate fallback
             object_hypotheses.append({
-                'name': 'unknown specialized object',
-                'function': 'for specialized applications that require unique combinations of tactile properties',
-                'reasoning': 'The combination of tactile properties suggests a specialized or custom application, but specific identification requires additional context or information',
-                'confidence': 'very low'
+                'name': 'everyday household item',
+                'function': 'for daily activities, comfort, or practical use around the home',
+                'reasoning': 'The tactile properties suggest a common household item used in daily life',
+                'confidence': 'low'
             })
     
-    # Additional confidence boosters for strong combinations
-    for hypothesis in object_hypotheses:
-        # Boost confidence for combinations with multiple matching properties
-        matching_properties = 0
-        if color in ['red', 'white', 'black', 'blue', 'green', 'yellow']:
-            matching_properties += 1
-        if temperature in ['hot', 'cold']:
-            matching_properties += 1  
-        if texture in ['D1', 'D2', 'D4', 'D5', 'D7']:
-            matching_properties += 1
-        if material in ['ABS', 'Acrylic', 'Cloth', 'Metal', 'Nylon', 'PET', 'PLA', 'Resin', 'Rubber', 'Wood']:
-            matching_properties += 1
-        
-        # Boost confidence for highly specific combinations
-        if matching_properties >= 3 and hypothesis['confidence'] == 'medium':
-            hypothesis['confidence'] = 'high'
-        elif matching_properties >= 4 and hypothesis['confidence'] == 'low':
-            hypothesis['confidence'] = 'medium'
-    
-    # Select best hypothesis with detailed reasoning
+    # Select best hypothesis
     if object_hypotheses:
-        # Prefer high confidence hypotheses, then most specific ones
         best_hypothesis = max(object_hypotheses, key=lambda x: 
                             (({'high': 3, 'medium': 2, 'low': 1}[x['confidence']]), len(x['function'])))
         
-        # Start with the reasoning process (Chain of Thought)
-        reasoning += f"Let me analyze each tactile property: {best_hypothesis['reasoning']}. "
+        # Chain of thought reasoning
+        reasoning = f"Let me think about what this could be in daily life: {best_hypothesis['reasoning']}. "
         
-        # Add detailed color context in the reasoning chain
+        # Add color context for daily objects
         if color in ['red', 'white', 'black', 'blue', 'green', 'yellow'] and color != 'unknown':
-            reasoning += f"The {color} color specifically indicates "
+            reasoning += f"The {color} color suggests "
             if color == 'red':
-                reasoning += "either emergency/safety applications requiring immediate attention, or sports/recreational equipment designed for visibility. "
+                reasoning += "something meant to be noticed or associated with food/cooking. "
             elif color == 'white':
-                reasoning += "medical/sterile applications where contamination detection is critical, or clean environments requiring hygiene standards. "
+                reasoning += "cleanliness, hygiene, or purity - common in kitchens and bathrooms. "
             elif color == 'black':
-                reasoning += "professional/industrial applications where durability and heat absorption are important, or technical equipment requiring non-reflective surfaces. "
+                reasoning += "a professional or durable item, often electronics or tools. "
             elif color == 'blue':
-                reasoning += "utility applications often related to water systems, or professional environments requiring trust and reliability. "
+                reasoning += "something refreshing or casual, like water or everyday clothing. "
             elif color == 'green':
-                reasoning += "environmental applications emphasizing sustainability, or outdoor equipment designed for natural settings. "
+                reasoning += "nature, outdoor activities, or eco-friendly products. "
             elif color == 'yellow':
-                reasoning += "safety applications requiring high visibility, or construction environments where hazard awareness is critical. "
+                reasoning += "visibility, cheerfulness, or citrus-related items. "
         
-        # Add confidence level in reasoning
+        # Add confidence in daily context
         if best_hypothesis['confidence'] == 'high':
-            reasoning += "The combination of tactile properties strongly matches a specific object type, giving me high confidence. "
+            reasoning += "This combination strongly matches common household items I encounter daily. "
         elif best_hypothesis['confidence'] == 'medium':
-            reasoning += "The tactile properties provide good indicators, though they could potentially match a few similar object types. "
+            reasoning += "This seems like a reasonable everyday item, though it could be one of a few similar things. "
         else:
-            reasoning += "The tactile properties suggest a likely identification, though additional information would help distinguish between similar categories. "
+            reasoning += "This appears to be a household item, though I'd need more details to be certain. "
         
-        # Now present the conclusion
-        reasoning += f"Based on this analysis, I believe this is most likely a {best_hypothesis['name']}. "
-        reasoning += f"Its specific function would be {best_hypothesis['function']}."
+        # Present conclusion
+        reasoning += f"I believe this is most likely a {best_hypothesis['name']}. "
+        reasoning += f"You would use it {best_hypothesis['function']}."
         
     else:
-        reasoning += "After analyzing the tactile properties, they suggest a functional object, but the specific combination doesn't match common object patterns in my knowledge base, making it difficult to draw a definitive conclusion about its identity or function."
+        reasoning = "Based on these tactile properties, this seems like an everyday household item, but I'd need more specific details to identify exactly what it is and how it's used in daily life."
     
     return reasoning
 
@@ -809,12 +592,12 @@ def generate_qa(start_prompt, json_path, data_path, split, num_samples):
                 sample2 = {}
                 tactile2 = {}
                 rand_ = random.random()
-                if rand_ < 0.4:
+                if rand_ < 0.9:
                     for key in samples.keys():
                         sample1[key] = random.sample(samples[key].keys(), k=1)[0]
                         tactile1[key] = [random.choice(samples[key][sample1[key]])]
                         rand = random.random()
-                        if rand < 0.5:
+                        if rand < 0.3:
                             sample2[key] = sample1[key]
                         else:
                             sample2[key] = random.sample(samples[key].keys(), k=1)[0]

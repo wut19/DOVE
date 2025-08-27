@@ -16,10 +16,10 @@ use_vqvae: False
 use_clip: 'openai/clip-vit-large-patch14'
 freeze_encoder: True
 encoder_path: {
-                'color': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/encoder_color_30000.pt',
-                'temperature': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/encoder_temperature_30000.pt',
-                'texture': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/encoder_texture_30000.pt',
-                'teng': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/encoder_teng_30000.pt'
+                'color': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/encoder_color_30000.pt',
+                'temperature': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/encoder_temperature_30000.pt',
+                'texture': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/encoder_texture_30000.pt',
+                'teng': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/encoder_teng_30000.pt'
 }
 encoder_output_size: 1024
 num_context_vision: 8
@@ -33,10 +33,10 @@ dim_context_text: 768
 freeze_projection: False
 projection_lr: 0.0002
 projection_path: {
-    'color': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/project_color_30000.pt',
-    'temperature': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/project_temperature_30000.pt',
-    'texture': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/project_texture_30000.pt',
-    'teng': 'exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/project_teng_30000.pt'
+    'color': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/project_color_30000.pt',
+    'temperature': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/project_temperature_30000.pt',
+    'texture': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/project_texture_30000.pt',
+    'teng': 'exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/project_teng_30000.pt'
 } 
 
 
@@ -49,8 +49,8 @@ cutoff_len: 512
 offload_dir: ./
 llm_lr: 0.0002
 quantized: False
-tokenizer_path: exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/tokenizer  # you should specify the path in second stage
-llm_path: exps_custom/2025_07_07_19_03_15_train_tllm_train_val_vicuna-7b_30000_0707/llm_weights # you should specify the path in second stage
+tokenizer_path: exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/tokenizer  # you should specify the path in second stage
+llm_path: exps_custom/2025_07_11_13_23_15_train_tllm_train_val_vicuna-7b_30000_0711/llm_weights # you should specify the path in second stage
 ## LoRA
 lora_trained: False
 use_lora: True # In the first stage: False; In the sencond stage, True
@@ -75,7 +75,7 @@ per_device_val_batch_size: 1
 max_new_tokens:
   train_object_property_description: 100
   train_object_comparison: 200
-  train_object_reasoning: 500
+  train_object_reasoning: 200
   eval_object_property_description: 100
   eval_object_comparison: 200
-  eval_object_reasoning: 500
+  eval_object_reasoning: 200

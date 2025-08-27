@@ -16,10 +16,10 @@ use_vqvae: False
 use_clip: 'openai/clip-vit-large-patch14'
 freeze_encoder: True
 encoder_path: {
-                'color': '/root/autodl-tmp/exps_custom/2025_07_06_15_58_27_train_clip_color_0706/encoder.pt',
-                'temperature': '/root/autodl-tmp/exps_custom/2025_07_06_16_08_30_train_clip_temperature_0706/encoder.pt',
-                'texture': '/root/autodl-tmp/exps_custom/2025_07_06_16_13_48_train_clip_texture_0706/encoder.pt',
-                'teng': '/root/autodl-tmp/exps_custom/2025_07_06_16_18_50_train_clip_teng_0706/encoder.pt'
+                'color': 'exps_custom/2025_07_06_15_58_27_train_clip_color_0706/encoder.pt',
+                'temperature': 'exps_custom/2025_07_06_16_08_30_train_clip_temperature_0706/encoder.pt',
+                'texture': 'exps_custom/2025_07_06_16_13_48_train_clip_texture_0706/encoder.pt',
+                'teng': 'exps_custom/2025_07_06_16_18_50_train_clip_teng_0706/encoder.pt'
 }
 encoder_output_size: 1024
 num_context_vision: 8
@@ -76,7 +76,7 @@ per_device_val_batch_size: 1
 max_new_tokens:
   train_object_property_description: 100
   train_object_comparison: 200
-  train_object_reasoning: 500
+  train_object_reasoning: 200
   eval_object_property_description: 100
   eval_object_comparison: 200
-  eval_object_reasoning: 500
+  eval_object_reasoning: 200
