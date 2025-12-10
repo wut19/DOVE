@@ -1,5 +1,4 @@
-# SuperTac
-## Biomimetic Multimodal Tactile Sens-ing Enables Human-like Robotic Per-ception
+# Biomimetic Multimodal Tactile Sensing Enables Human-like Robotic Perception
 Repository containing DOVE tactile language model and multimodal tactile dataset.
 
 
