@@ -1,4 +1,4 @@
-# Biomimetic Multimodal Tactile Sensing Enables Human-like Robotic Perception
+# Biomimetic Multimodal Tactile Sensing Enables Human-like Robotic Perception [Nature Sensors]
 Repository containing DOVE tactile language model and multimodal tactile dataset.
 
 
